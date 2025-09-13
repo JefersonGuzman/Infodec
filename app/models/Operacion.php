@@ -33,9 +33,9 @@
                         $producto,
                         $referencia,
                         (int)$cantidad,
-                        number_format((float)$valorUnitario, 2, '.', ''),  
-                        number_format((float)$valorVendido, 2, '.', ''),   
-                        number_format((float)$impuesto, 2, '.', ''),       
+                        (int)$valorUnitario,  
+                        (int)$valorVendido,   
+                        (int)$impuesto,       
                         $tipoOperacion,
                         $motivo
                     ]);

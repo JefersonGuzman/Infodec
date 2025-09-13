@@ -16,9 +16,9 @@ CREATE TABLE operaciones (
     producto VARCHAR(100) NOT NULL,
     referencia VARCHAR(50),
     cantidad INT NOT NULL,
-    valor_unitario DECIMAL(15,2) NOT NULL,
-    valor_vendido DECIMAL(15,2) NOT NULL,
-    impuesto DECIMAL(15,2),
+    valor_unitario INT NOT NULL,
+    valor_vendido INT NOT NULL,
+    impuesto INT
     tipo_operacion ENUM('Venta','Devolución') NOT NULL,
     motivo VARCHAR(255) NULL,
     FOREIGN KEY (vendedor_id) REFERENCES vendedores(id)
