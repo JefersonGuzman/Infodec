@@ -1,5 +1,5 @@
 <?php
-    $controller = $_GET['controller'] ?? 'Carga';
+    $controller = $_GET['controller'] ?? 'Ventas';
     $action = $_GET['action'] ?? 'index';
 
     $controllerClass = $controller . "Controller";

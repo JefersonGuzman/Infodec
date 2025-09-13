@@ -4,7 +4,9 @@
 
     class CargaController {
         public function index() {
+            include "app/views/layout/header.php";
             include "app/views/carga/index.php";
+            include "app/views/layout/footer.php";
         }
 
         public function upload() {

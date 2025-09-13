@@ -25,9 +25,9 @@ class VendedoresController {
             LEFT JOIN operaciones o ON v.id = o.vendedor_id
             GROUP BY v.id, v.nombre
             ORDER BY v.nombre
-            LIMIT ? OFFSET ?
+            LIMIT $limit OFFSET $offset
         ");
-        $stmt->execute([$limit, $offset]);
+        $stmt->execute();
         $vendedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         include "app/views/layout/header.php";

@@ -29,9 +29,9 @@ class DevolucionesController {
             JOIN vendedores v ON v.id = o.vendedor_id
             WHERE o.tipo_operacion = 'Devolución'
             ORDER BY o.fecha DESC, o.id DESC
-            LIMIT ? OFFSET ?
+            LIMIT $limit OFFSET $offset
         ");
-        $stmt->execute([$limit, $offset]);
+        $stmt->execute();
         $devoluciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         include "app/views/layout/header.php";

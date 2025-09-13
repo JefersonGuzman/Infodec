@@ -91,6 +91,9 @@
                         <a class="nav-link" href="index.php?controller=Vendedores&action=index">
                             <i class="bi bi-people me-2"></i> Gestionar Vendedores
                         </a>
+                        <a class="nav-link" href="index.php?controller=Comisiones&action=index">
+                            <i class="bi bi-calculator me-2"></i> Comisiones
+                        </a>
                     </nav>
                 </div>
             </div>
