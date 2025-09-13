@@ -8,26 +8,59 @@ class VendedoresController {
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
+        // Obtener filtros
+        $buscar = $_GET['buscar'] ?? '';
+        $orden = $_GET['orden'] ?? 'nombre';
+        
         $pdo = Conexion::getConexion();
         
+        // Construir consulta con filtros
+        $where = [];
+        $params = [];
+        
+        if ($buscar) {
+            $where[] = "v.nombre LIKE ?";
+            $params[] = "%$buscar%";
+        }
+        
+        $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+        
+        // Determinar orden
+        $orderBy = "v.nombre";
+        switch ($orden) {
+            case 'ventas':
+                $orderBy = "total_ventas DESC";
+                break;
+            case 'operaciones':
+                $orderBy = "total_operaciones DESC";
+                break;
+            default:
+                $orderBy = "v.nombre";
+        }
+        
         // Contar total de registros
-        $countStmt = $pdo->query("SELECT COUNT(*) FROM vendedores");
+        $countSql = "SELECT COUNT(*) FROM vendedores v $whereClause";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
         $totalRecords = $countStmt->fetchColumn();
         $totalPages = ceil($totalRecords / $limit);
         
         // Obtener registros paginados
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT v.id, v.nombre, 
                    COUNT(o.id) as total_operaciones,
                    COALESCE(SUM(CASE WHEN o.tipo_operacion = 'Venta' THEN o.valor_vendido ELSE 0 END), 0) as total_ventas,
                    COALESCE(SUM(CASE WHEN o.tipo_operacion = 'Devolución' THEN o.valor_vendido ELSE 0 END), 0) as total_devoluciones
             FROM vendedores v
             LEFT JOIN operaciones o ON v.id = o.vendedor_id
+            $whereClause
             GROUP BY v.id, v.nombre
-            ORDER BY v.nombre
+            ORDER BY $orderBy
             LIMIT $limit OFFSET $offset
-        ");
-        $stmt->execute();
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $vendedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         include "app/views/layout/header.php";

@@ -44,6 +44,62 @@
     </div>
 </div>
 
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0 text-dark">
+            <i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <input type="hidden" name="controller" value="Ventas">
+            <input type="hidden" name="action" value="index">
+            
+            <div class="col-md-3">
+                <label for="fecha_desde" class="form-label text-dark">Fecha Desde</label>
+                <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="<?php echo $_GET['fecha_desde'] ?? ''; ?>">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="fecha_hasta" class="form-label text-dark">Fecha Hasta</label>
+                <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="<?php echo $_GET['fecha_hasta'] ?? ''; ?>">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="vendedor" class="form-label text-dark">Vendedor</label>
+                <select class="form-select" id="vendedor" name="vendedor">
+                    <option value="">Todos los vendedores</option>
+                    <?php
+                    $pdo = Conexion::getConexion();
+                    $stmt = $pdo->query("SELECT DISTINCT v.id, v.nombre FROM vendedores v ORDER BY v.nombre");
+                    while ($v = $stmt->fetch(PDO::FETCH_ASSOC)): 
+                    ?>
+                        <option value="<?php echo $v['id']; ?>" <?php echo ($_GET['vendedor'] ?? '') == $v['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($v['nombre']); ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="producto" class="form-label text-dark">Producto</label>
+                <input type="text" class="form-control" id="producto" name="producto" 
+                       placeholder="Buscar producto..." value="<?php echo htmlspecialchars($_GET['producto'] ?? ''); ?>">
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search me-2"></i>Filtrar
+                </button>
+                <a href="index.php?controller=Ventas&action=index" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Tabla de ventas -->
 <div class="card">
     <div class="card-header bg-light">
@@ -106,9 +162,18 @@
         <div class="card-footer bg-light">
             <nav aria-label="Paginación de ventas">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <?php 
+                    $filtros = http_build_query([
+                        'fecha_desde' => $_GET['fecha_desde'] ?? '',
+                        'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
+                        'vendedor' => $_GET['vendedor'] ?? '',
+                        'producto' => $_GET['producto'] ?? ''
+                    ]);
+                    ?>
+                    
                     <?php if ($page > 1): ?>
                         <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Ventas&action=index&page=<?php echo $page - 1; ?>">
+                            <a class="page-link text-dark" href="index.php?controller=Ventas&action=index&page=<?php echo $page - 1; ?>&<?php echo $filtros; ?>">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -117,7 +182,7 @@
                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                         <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
                             <a class="page-link <?php echo $i == $page ? 'bg-dark text-white' : 'text-dark'; ?>" 
-                               href="index.php?controller=Ventas&action=index&page=<?php echo $i; ?>">
+                               href="index.php?controller=Ventas&action=index&page=<?php echo $i; ?>&<?php echo $filtros; ?>">
                                 <?php echo $i; ?>
                             </a>
                         </li>
@@ -125,7 +190,7 @@
                     
                     <?php if ($page < $totalPages): ?>
                         <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Ventas&action=index&page=<?php echo $page + 1; ?>">
+                            <a class="page-link text-dark" href="index.php?controller=Ventas&action=index&page=<?php echo $page + 1; ?>&<?php echo $filtros; ?>">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>

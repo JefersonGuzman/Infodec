@@ -7,6 +7,45 @@
     </button>
 </div>
 
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0 text-dark">
+            <i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <input type="hidden" name="controller" value="Vendedores">
+            <input type="hidden" name="action" value="index">
+            
+            <div class="col-md-4">
+                <label for="buscar" class="form-label text-dark">Buscar Vendedor</label>
+                <input type="text" class="form-control" id="buscar" name="buscar" 
+                       placeholder="Nombre del vendedor..." value="<?php echo htmlspecialchars($_GET['buscar'] ?? ''); ?>">
+            </div>
+            
+            <div class="col-md-4">
+                <label for="orden" class="form-label text-dark">Ordenar por</label>
+                <select class="form-select" id="orden" name="orden">
+                    <option value="nombre" <?php echo ($_GET['orden'] ?? 'nombre') == 'nombre' ? 'selected' : ''; ?>>Nombre</option>
+                    <option value="ventas" <?php echo ($_GET['orden'] ?? '') == 'ventas' ? 'selected' : ''; ?>>Total Ventas</option>
+                    <option value="operaciones" <?php echo ($_GET['orden'] ?? '') == 'operaciones' ? 'selected' : ''; ?>>Total Operaciones</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search me-2"></i>Filtrar
+                </button>
+                <a href="index.php?controller=Vendedores&action=index" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Mensajes -->
 <?php if (isset($_GET['msg'])): ?>
     <div class="alert alert-<?php 
@@ -92,9 +131,16 @@
         <div class="card-footer bg-light">
             <nav aria-label="Paginación de vendedores">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <?php 
+                    $filtros = http_build_query([
+                        'buscar' => $_GET['buscar'] ?? '',
+                        'orden' => $_GET['orden'] ?? 'nombre'
+                    ]);
+                    ?>
+                    
                     <?php if ($page > 1): ?>
                         <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Vendedores&action=index&page=<?php echo $page - 1; ?>">
+                            <a class="page-link text-dark" href="index.php?controller=Vendedores&action=index&page=<?php echo $page - 1; ?>&<?php echo $filtros; ?>">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -103,7 +149,7 @@
                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                         <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
                             <a class="page-link <?php echo $i == $page ? 'bg-dark text-white' : 'text-dark'; ?>" 
-                               href="index.php?controller=Vendedores&action=index&page=<?php echo $i; ?>">
+                               href="index.php?controller=Vendedores&action=index&page=<?php echo $i; ?>&<?php echo $filtros; ?>">
                                 <?php echo $i; ?>
                             </a>
                         </li>
@@ -111,7 +157,7 @@
                     
                     <?php if ($page < $totalPages): ?>
                         <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Vendedores&action=index&page=<?php echo $page + 1; ?>">
+                            <a class="page-link text-dark" href="index.php?controller=Vendedores&action=index&page=<?php echo $page + 1; ?>&<?php echo $filtros; ?>">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>

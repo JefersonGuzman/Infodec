@@ -190,7 +190,7 @@ class Comision {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    public function obtenerComisiones($anio = null, $mes = null, $limit = 50, $offset = 0) {
+    public function obtenerComisiones($anio = null, $mes = null, $limit = 50, $offset = 0, $vendedorId = null) {
         $pdo = Conexion::getConexion();
         
         $sql = "SELECT c.*, v.nombre as vendedor_nombre 
@@ -208,6 +208,11 @@ class Comision {
         if ($mes) {
             $where[] = "c.mes = ?";
             $params[] = $mes;
+        }
+        
+        if ($vendedorId) {
+            $where[] = "c.vendedor_id = ?";
+            $params[] = $vendedorId;
         }
         
         if (!empty($where)) {

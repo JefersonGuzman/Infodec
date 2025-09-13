@@ -12,11 +12,12 @@ class ComisionesController {
         $page = $_GET['page'] ?? 1;
         $anio = $_GET['anio'] ?? date('Y');
         $mes = $_GET['mes'] ?? date('n');
+        $vendedorId = $_GET['vendedor'] ?? '';
         
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
-        $comisiones = $this->comision->obtenerComisiones($anio, $mes, $limit, $offset);
+        $comisiones = $this->comision->obtenerComisiones($anio, $mes, $limit, $offset, $vendedorId);
         $estadisticas = $this->comision->obtenerEstadisticas($anio, $mes);
         
         // Calcular total de páginas
@@ -33,6 +34,11 @@ class ComisionesController {
         if ($mes) {
             $where[] = "c.mes = ?";
             $params[] = $mes;
+        }
+        
+        if ($vendedorId) {
+            $where[] = "c.vendedor_id = ?";
+            $params[] = $vendedorId;
         }
         
         if (!empty($where)) {

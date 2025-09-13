@@ -54,7 +54,7 @@
                 </select>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label for="mes" class="form-label text-dark">Mes</label>
                 <select class="form-select" id="mes" name="mes">
                     <?php 
@@ -72,7 +72,23 @@
                 </select>
             </div>
             
-            <div class="col-md-3 d-flex align-items-end">
+            <div class="col-md-2">
+                <label for="vendedor" class="form-label text-dark">Vendedor</label>
+                <select class="form-select" id="vendedor" name="vendedor">
+                    <option value="">Todos</option>
+                    <?php
+                    $pdo = Conexion::getConexion();
+                    $stmt = $pdo->query("SELECT DISTINCT v.id, v.nombre FROM vendedores v ORDER BY v.nombre");
+                    while ($v = $stmt->fetch(PDO::FETCH_ASSOC)): 
+                    ?>
+                        <option value="<?php echo $v['id']; ?>" <?php echo ($_GET['vendedor'] ?? '') == $v['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($v['nombre']); ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search me-2"></i>Filtrar
                 </button>
@@ -209,9 +225,17 @@
         <div class="card-footer bg-light">
             <nav aria-label="Paginación de comisiones">
                 <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <?php 
+                    $filtros = http_build_query([
+                        'anio' => $_GET['anio'] ?? '',
+                        'mes' => $_GET['mes'] ?? '',
+                        'vendedor' => $_GET['vendedor'] ?? ''
+                    ]);
+                    ?>
+                    
                     <?php if ($page > 1): ?>
                         <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Comisiones&action=index&page=<?php echo $page - 1; ?>&anio=<?php echo $anio; ?>&mes=<?php echo $mes; ?>">
+                            <a class="page-link text-dark" href="index.php?controller=Comisiones&action=index&page=<?php echo $page - 1; ?>&<?php echo $filtros; ?>">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -220,7 +244,7 @@
                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                         <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
                             <a class="page-link <?php echo $i == $page ? 'bg-dark text-white' : 'text-dark'; ?>" 
-                               href="index.php?controller=Comisiones&action=index&page=<?php echo $i; ?>&anio=<?php echo $anio; ?>&mes=<?php echo $mes; ?>">
+                               href="index.php?controller=Comisiones&action=index&page=<?php echo $i; ?>&<?php echo $filtros; ?>">
                                 <?php echo $i; ?>
                             </a>
                         </li>
@@ -228,7 +252,7 @@
                     
                     <?php if ($page < $totalPages): ?>
                         <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Comisiones&action=index&page=<?php echo $page + 1; ?>&anio=<?php echo $anio; ?>&mes=<?php echo $mes; ?>">
+                            <a class="page-link text-dark" href="index.php?controller=Comisiones&action=index&page=<?php echo $page + 1; ?>&<?php echo $filtros; ?>">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
