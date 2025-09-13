@@ -28,9 +28,16 @@
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute([
-                        $fecha, $vendedorId, $producto, $referencia, (int)$cantidad,
-                        (float)$valorUnitario, (float)$valorVendido, (float)$impuesto,
-                        $tipoOperacion, $motivo
+                        $fecha,
+                        $vendedorId,
+                        $producto,
+                        $referencia,
+                        (int)$cantidad,
+                        number_format((float)$valorUnitario, 2, '.', ''),  
+                        number_format((float)$valorVendido, 2, '.', ''),   
+                        number_format((float)$impuesto, 2, '.', ''),       
+                        $tipoOperacion,
+                        $motivo
                     ]);
                 }
                 fclose($handle);
