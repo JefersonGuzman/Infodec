@@ -1,5 +1,8 @@
+-- Borrar base de datos si existe
+DROP DATABASE IF EXISTS ventasplus;
+
 -- Crear base de datos
-CREATE DATABASE IF NOT EXISTS ventasplus;
+CREATE DATABASE ventasplus;
 USE ventasplus;
 
 -- Tabla de vendedores 
@@ -18,7 +21,7 @@ CREATE TABLE operaciones (
     cantidad INT NOT NULL,
     valor_unitario INT NOT NULL,
     valor_vendido INT NOT NULL,
-    impuesto INT
+    impuesto INT,
     tipo_operacion ENUM('Venta','Devolución') NOT NULL,
     motivo VARCHAR(255) NULL,
     FOREIGN KEY (vendedor_id) REFERENCES vendedores(id)
@@ -28,8 +31,8 @@ CREATE TABLE operaciones (
 CREATE TABLE comisiones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     vendedor_id INT NOT NULL,
-    mes YEAR(4) NOT NULL,
-    mes_numero INT NOT NULL,
+    anio INT NOT NULL,
+    mes INT NOT NULL,
     total_ventas DECIMAL(15,2) DEFAULT 0,
     total_devoluciones DECIMAL(15,2) DEFAULT 0,
     indice_devoluciones DECIMAL(5,2) DEFAULT 0,
