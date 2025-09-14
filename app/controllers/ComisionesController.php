@@ -123,6 +123,79 @@ class ComisionesController {
         include "app/views/layout/footer.php";
     }
     
+    public function detalle() {
+        $vendedorId = $_GET['id'] ?? null;
+        $anio = $_GET['anio'] ?? date('Y');
+        $mes = $_GET['mes'] ?? date('n');
+        
+        if (!$vendedorId) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'ID de vendedor requerido']);
+            return;
+        }
+        
+        $pdo = Conexion::getConexion();
+        
+        $vendedorSql = "SELECT nombre FROM vendedores WHERE id = ?";
+        $vendedorStmt = $pdo->prepare($vendedorSql);
+        $vendedorStmt->execute([$vendedorId]);
+        $vendedor = $vendedorStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$vendedor) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Vendedor no encontrado']);
+            return;
+        }
+        
+        $comisionSql = "
+            SELECT c.*, v.nombre as vendedor_nombre
+            FROM comisiones c
+            JOIN vendedores v ON v.id = c.vendedor_id
+            WHERE c.vendedor_id = ? AND c.anio = ? AND c.mes = ?
+        ";
+        $comisionStmt = $pdo->prepare($comisionSql);
+        $comisionStmt->execute([$vendedorId, $anio, $mes]);
+        $comision = $comisionStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$comision) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No hay comisión calculada para este período']);
+            return;
+        }
+        
+        $ventasSql = "
+            SELECT o.fecha, o.producto, o.referencia, o.cantidad, o.valor_unitario, o.valor_vendido, o.impuesto
+            FROM operaciones o
+            WHERE o.vendedor_id = ? AND o.tipo_operacion = 'Venta' 
+            AND YEAR(o.fecha) = ? AND MONTH(o.fecha) = ?
+            ORDER BY o.fecha DESC
+        ";
+        $ventasStmt = $pdo->prepare($ventasSql);
+        $ventasStmt->execute([$vendedorId, $anio, $mes]);
+        $ventas = $ventasStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $devolucionesSql = "
+            SELECT o.fecha, o.producto, o.referencia, o.cantidad, o.valor_unitario, o.valor_vendido, o.impuesto, o.motivo
+            FROM operaciones o
+            WHERE o.vendedor_id = ? AND o.tipo_operacion = 'Devolución' 
+            AND YEAR(o.fecha) = ? AND MONTH(o.fecha) = ?
+            ORDER BY o.fecha DESC
+        ";
+        $devolucionesStmt = $pdo->prepare($devolucionesSql);
+        $devolucionesStmt->execute([$vendedorId, $anio, $mes]);
+        $devoluciones = $devolucionesStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $response = [
+            'vendedor' => $vendedor,
+            'comision' => $comision,
+            'ventas' => $ventas,
+            'devoluciones' => $devoluciones
+        ];
+        
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+    
     public function exportar() {
         $anio = $_GET['anio'] ?? date('Y');
         $mes = $_GET['mes'] ?? date('n');
@@ -247,8 +320,9 @@ class ComisionesController {
                 '<span class="text-danger"><i class="bi bi-dash-circle"></i> $' . number_format($comision['penalizacion'], 0, ',', '.') . '</span>' :
                 '<span class="text-muted">-</span>';
             
-            $acciones = '<a href="index.php?controller=Comisiones&action=vendedor&id=' . $comision['vendedor_id'] . '" ' .
-                       'class="btn btn-outline-info btn-sm me-1" title="Ver detalle"><i class="bi bi-eye"></i></a>' .
+            $acciones = '<button type="button" class="btn btn-outline-info btn-sm me-1" title="Ver detalle" ' .
+                       'onclick="verDetalleComision(' . $comision['vendedor_id'] . ', ' . $comision['anio'] . ', ' . $comision['mes'] . ')">' .
+                       '<i class="bi bi-eye"></i></button>' .
                        '<a href="index.php?controller=Comisiones&action=recalcular&id=' . $comision['id'] . '" ' .
                        'class="btn btn-outline-warning btn-sm" title="Recalcular" ' .
                        'onclick="return confirm(\'¿Recalcular esta comisión?\')"><i class="bi bi-arrow-clockwise"></i></a>';

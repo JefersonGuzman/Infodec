@@ -216,6 +216,33 @@
     </div>
 </div>
 
+<div class="modal fade" id="detalleModal" tabindex="-1" aria-labelledby="detalleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-dark" id="detalleModalLabel">
+                    <i class="bi bi-eye me-2"></i>Detalle de Comisiones
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detalleContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 $(document).ready(function() {
     var anio = '<?php echo $anio; ?>';
@@ -268,4 +295,74 @@ $(document).ready(function() {
         "order": [[0, "asc"]]
     });
 });
+
+function verDetalleComision(vendedorId, anio, mes) {
+    $('#detalleContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>');
+    
+    var modal = new bootstrap.Modal(document.getElementById('detalleModal'));
+    modal.show();
+    
+    fetch('index.php?controller=Comisiones&action=detalle&id=' + vendedorId + '&anio=' + anio + '&mes=' + mes)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                $('#detalleContent').html('<div class="alert alert-danger">' + data.error + '</div>');
+                return;
+            }
+            
+            var html = '<div class="row mb-4">';
+            html += '<div class="col-md-12">';
+            html += '<h4 class="text-dark">' + data.vendedor.nombre + '</h4>';
+            html += '<p class="text-muted">Período: ' + data.comision.anio + '/' + String(data.comision.mes).padStart(2, '0') + '</p>';
+            html += '</div></div>';
+            
+            html += '<div class="row mb-4">';
+            html += '<div class="col-md-3"><div class="card text-center"><div class="card-body"><h6 class="card-title">Total Ventas</h6><h5 class="text-primary">$' + new Intl.NumberFormat('es-CO').format(parseFloat(data.comision.total_ventas)) + '</h5></div></div></div>';
+            html += '<div class="col-md-3"><div class="card text-center"><div class="card-body"><h6 class="card-title">Total Devoluciones</h6><h5 class="text-warning">$' + new Intl.NumberFormat('es-CO').format(parseFloat(data.comision.total_devoluciones)) + '</h5></div></div></div>';
+            html += '<div class="col-md-3"><div class="card text-center"><div class="card-body"><h6 class="card-title">Índice Devoluciones</h6><h5 class="' + (parseFloat(data.comision.indice_devoluciones) > 5 ? 'text-danger' : 'text-success') + '">' + parseFloat(data.comision.indice_devoluciones).toFixed(2) + '%</h5></div></div></div>';
+            html += '<div class="col-md-3"><div class="card text-center"><div class="card-body"><h6 class="card-title">Comisión Final</h6><h5 class="text-success">$' + new Intl.NumberFormat('es-CO').format(parseFloat(data.comision.comision_final)) + '</h5></div></div></div>';
+            html += '</div>';
+            
+            html += '<div class="row">';
+            html += '<div class="col-md-6">';
+            html += '<h5 class="text-dark mb-3"><i class="bi bi-upload me-2"></i>Ventas del Período</h5>';
+            html += '<div class="table-responsive" style="max-height: 300px; overflow-y: auto;">';
+            html += '<table class="table table-sm table-hover">';
+            html += '<thead><tr><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Valor</th></tr></thead>';
+            html += '<tbody>';
+            data.ventas.forEach(function(venta) {
+                html += '<tr>';
+                html += '<td>' + new Date(venta.fecha).toLocaleDateString('es-CO') + '</td>';
+                html += '<td>' + venta.producto + '</td>';
+                html += '<td>' + new Intl.NumberFormat('es-CO').format(parseFloat(venta.cantidad)) + '</td>';
+                html += '<td>$' + new Intl.NumberFormat('es-CO').format(parseFloat(venta.valor_vendido)) + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table></div></div>';
+            
+            html += '<div class="col-md-6">';
+            html += '<h5 class="text-dark mb-3"><i class="bi bi-arrow-return-left me-2"></i>Devoluciones del Período</h5>';
+            html += '<div class="table-responsive" style="max-height: 300px; overflow-y: auto;">';
+            html += '<table class="table table-sm table-hover">';
+            html += '<thead><tr><th>Fecha</th><th>Producto</th><th>Cantidad</th><th>Valor</th><th>Motivo</th></tr></thead>';
+            html += '<tbody>';
+            data.devoluciones.forEach(function(devolucion) {
+                html += '<tr>';
+                html += '<td>' + new Date(devolucion.fecha).toLocaleDateString('es-CO') + '</td>';
+                html += '<td>' + devolucion.producto + '</td>';
+                html += '<td>' + new Intl.NumberFormat('es-CO').format(parseFloat(devolucion.cantidad)) + '</td>';
+                html += '<td>$' + new Intl.NumberFormat('es-CO').format(parseFloat(devolucion.valor_vendido)) + '</td>';
+                html += '<td>' + (devolucion.motivo || 'N/A') + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table></div></div>';
+            html += '</div>';
+            
+            $('#detalleContent').html(html);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            $('#detalleContent').html('<div class="alert alert-danger">Error al cargar los detalles</div>');
+        });
+}
 </script>
