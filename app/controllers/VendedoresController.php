@@ -8,13 +8,11 @@ class VendedoresController {
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
-        // Obtener filtros
         $buscar = $_GET['buscar'] ?? '';
         $orden = $_GET['orden'] ?? '';
         
         $pdo = Conexion::getConexion();
         
-        // Construir consulta con filtros
         $where = [];
         $params = [];
         
@@ -25,7 +23,6 @@ class VendedoresController {
         
         $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
         
-        // Determinar orden
         $orderBy = "v.id DESC";
         switch ($orden) {
             case 'ventas':
@@ -41,14 +38,12 @@ class VendedoresController {
                 $orderBy = "v.id DESC";
         }
         
-        // Contar total de registros
         $countSql = "SELECT COUNT(*) FROM vendedores v $whereClause";
         $countStmt = $pdo->prepare($countSql);
         $countStmt->execute($params);
         $totalRecords = $countStmt->fetchColumn();
         $totalPages = ceil($totalRecords / $limit);
         
-        // Obtener registros paginados
         $sql = "
             SELECT v.id, v.nombre, 
                    COUNT(o.id) as total_operaciones,
@@ -82,7 +77,6 @@ class VendedoresController {
             
             $pdo = Conexion::getConexion();
             
-            // Verificar si ya existe
             $stmt = $pdo->prepare("SELECT id FROM vendedores WHERE nombre = ?");
             $stmt->execute([$nombre]);
             
@@ -91,7 +85,6 @@ class VendedoresController {
                 return;
             }
             
-            // Crear vendedor
             $stmt = $pdo->prepare("INSERT INTO vendedores (nombre) VALUES (?)");
             $stmt->execute([$nombre]);
             
@@ -111,7 +104,7 @@ class VendedoresController {
             
             $pdo = Conexion::getConexion();
             
-            // Verificar si ya existe otro vendedor con ese nombre
+ otro vendedor con ese nombre
             $stmt = $pdo->prepare("SELECT id FROM vendedores WHERE nombre = ? AND id != ?");
             $stmt->execute([$nombre, $id]);
             
@@ -120,7 +113,6 @@ class VendedoresController {
                 return;
             }
             
-            // Actualizar vendedor
             $stmt = $pdo->prepare("UPDATE vendedores SET nombre = ? WHERE id = ?");
             $stmt->execute([$nombre, $id]);
             
@@ -132,7 +124,6 @@ class VendedoresController {
         if (isset($_GET['id'])) {
             $pdo = Conexion::getConexion();
             
-            // Verificar si tiene operaciones asociadas
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM operaciones WHERE vendedor_id = ?");
             $stmt->execute([$_GET['id']]);
             $hasOperations = $stmt->fetchColumn() > 0;

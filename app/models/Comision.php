@@ -3,9 +3,8 @@ require_once "Conexion.php";
 
 class Comision {
     
-    // Constantes de configuración
     const COMISION_BASE_PORCENTAJE = 5; 
-    const BONO_PORCENTAJE = 2; // +2%
+    const BONO_PORCENTAJE = 2;
     const PENALIZACION_PORCENTAJE = 1; 
     const META_VENTAS_BONO = 50000000; 
     const INDICE_DEVOLUCIONES_LIMITE = 5; 
@@ -18,21 +17,17 @@ class Comision {
             return false;
         }
         
-        // Calcular comisión base (5% del total de ventas)
         $comisionBase = $vendedor['total_ventas'] * (self::COMISION_BASE_PORCENTAJE / 100);
         $indiceDevoluciones = $this->calcularIndiceDevoluciones($vendedor['total_ventas'], $vendedor['total_devoluciones']);
         $bono = 0;
         if ($vendedor['total_ventas'] > self::META_VENTAS_BONO) {
             $bono = $vendedor['total_ventas'] * (self::BONO_PORCENTAJE / 100);
         }
-        // Calcular penalización (-1% si índice de devoluciones > 5%)
         $penalizacion = 0;
         if ($indiceDevoluciones > self::INDICE_DEVOLUCIONES_LIMITE) {
             $penalizacion = $vendedor['total_ventas'] * (self::PENALIZACION_PORCENTAJE / 100);
         }
-        // Calcular comisión final
         $comisionFinal = $comisionBase + $bono - $penalizacion;
-        // Asegurar que la comisión final no sea negativa
         $comisionFinal = max(0, $comisionFinal);
         return [
             'vendedor_id' => $vendedorId,
@@ -87,7 +82,6 @@ class Comision {
         $stmt->execute([$datosComision['vendedor_id'], $datosComision['anio'], $datosComision['mes']]);
         
         if ($stmt->fetch()) {
-            // Actualizar comisión existente
             $sql = "UPDATE comisiones SET 
                     total_ventas = ?, 
                     total_devoluciones = ?, 
@@ -112,7 +106,6 @@ class Comision {
                 $datosComision['mes']
             ]);
         } else {
-            // Insertar nueva comisión
             $sql = "INSERT INTO comisiones 
                     (vendedor_id, anio, mes, total_ventas, total_devoluciones, indice_devoluciones, 
                      comision_base, bono, penalizacion, comision_final) 
@@ -139,7 +132,6 @@ class Comision {
     public function calcularComisionesMes($anio, $mes) {
         $pdo = Conexion::getConexion();
         
-        // Obtener todos los vendedores que tuvieron operaciones en el mes
         $stmt = $pdo->prepare("
             SELECT DISTINCT v.id 
             FROM vendedores v

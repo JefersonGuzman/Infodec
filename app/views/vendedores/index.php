@@ -7,7 +7,6 @@
     </button>
 </div>
 
-<!-- Filtros -->
 <div class="card mb-4">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">
@@ -47,7 +46,6 @@
     </div>
 </div>
 
-<!-- Mensajes -->
 <?php if (isset($_GET['msg'])): ?>
     <div class="alert alert-<?php 
         echo $_GET['msg'] == 'success' ? 'success' : 
@@ -74,7 +72,6 @@
     </div>
 <?php endif; ?>
 
-<!-- Tabla de vendedores -->
 <div class="card">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">
@@ -102,7 +99,6 @@
     
 </div>
 
-<!-- Modal para crear/editar vendedor -->
 <div class="modal fade" id="vendedorModal" tabindex="-1" aria-labelledby="vendedorModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

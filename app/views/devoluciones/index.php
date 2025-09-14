@@ -7,7 +7,6 @@
     </button>
 </div>
 
-<!-- Mensajes -->
 <?php if (isset($_GET['msg'])): ?>
     <div class="alert alert-<?php echo $_GET['msg'] == 'success' ? 'success' : ($_GET['msg'] == 'deleted' ? 'info' : 'danger'); ?> alert-dismissible fade show" role="alert">
         <?php 
@@ -22,7 +21,6 @@
 <?php endif; ?>
 
 
-<!-- Filtros -->
 <div class="card mb-4">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">
@@ -78,7 +76,6 @@
     </div>
 </div>
 
-<!-- Tabla de devoluciones -->
 <div class="card">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">
@@ -111,7 +108,6 @@
     
 </div>
 
-<!-- Modal para cargar datos -->
 <div class="modal fade" id="cargarModal" tabindex="-1" aria-labelledby="cargarModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

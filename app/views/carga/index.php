@@ -4,7 +4,6 @@
     </h2>
 </div>
 
-<!-- Mensajes -->
 <?php if (isset($_GET['msg'])): ?>
     <div class="alert alert-<?php echo $_GET['msg'] == 'ok' ? 'success' : 'danger'; ?> alert-dismissible fade show" role="alert">
         <?php echo $_GET['msg'] == 'ok' ? 'Archivo CSV cargado exitosamente' : 'Error al cargar el archivo'; ?>
@@ -12,7 +11,6 @@
     </div>
 <?php endif; ?>
 
-<!-- Formulario de carga -->
 <div class="card mb-4">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">
@@ -38,7 +36,6 @@
     </div>
 </div>
 
-<!-- Tabla de últimos registros -->
 <div class="card">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">

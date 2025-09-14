@@ -10,14 +10,11 @@
                 while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
                     if ($firstRow) { $firstRow = false; continue; }
 
-                        // Mínimo 8 columnas (ventas simples)
                         list($fecha, $vendedor, $producto, $referencia, $cantidad,
                             $valorUnitario, $valorVendido, $impuesto) = $row;
 
-                        // Si hay columna 9 (TipoOperacion), úsala. Si no, asumir "Venta".
                         $tipoOperacion = $row[8] ?? "Venta";
 
-                        // Si hay columna 10 (Motivo), úsala. Si no, null.
                         $motivo = $row[9] ?? null;
 
 

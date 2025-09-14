@@ -329,14 +329,14 @@ class ComisionesController {
             
             $data[] = [
                 $vendedorInfo,
-                '$' . number_format($comision['total_ventas'], 0, ',', '.'),
-                '$' . number_format($comision['total_devoluciones'], 0, ',', '.'),
-                $indiceBadge,
-                '$' . number_format($comision['comision_base'], 0, ',', '.'),
-                $bono,
-                $penalizacion,
-                '<strong class="text-primary">$' . number_format($comision['comision_final'], 0, ',', '.') . '</strong>',
-                $acciones
+                '<div class="text-end">$' . number_format($comision['total_ventas'], 0, ',', '.') . '</div>',
+                '<div class="text-end">$' . number_format($comision['total_devoluciones'], 0, ',', '.') . '</div>',
+                '<div class="text-center">' . $indiceBadge . '</div>',
+                '<div class="text-end">$' . number_format($comision['comision_base'], 0, ',', '.') . '</div>',
+                '<div class="text-end">' . $bono . '</div>',
+                '<div class="text-end">' . $penalizacion . '</div>',
+                '<div class="text-end"><strong class="text-primary">$' . number_format($comision['comision_final'], 0, ',', '.') . '</strong></div>',
+                '<div class="text-center">' . $acciones . '</div>'
             ];
         }
         

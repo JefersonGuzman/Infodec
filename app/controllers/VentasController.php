@@ -14,7 +14,6 @@ class VentasController {
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
-        // Obtener filtros
         $fechaDesde = $_GET['fecha_desde'] ?? '';
         $fechaHasta = $_GET['fecha_hasta'] ?? '';
         $vendedorId = $_GET['vendedor'] ?? '';
@@ -22,7 +21,6 @@ class VentasController {
         
         $pdo = Conexion::getConexion();
         
-        // Construir consulta con filtros
         $where = ["o.tipo_operacion = 'Venta'"];
         $params = [];
         
@@ -48,14 +46,12 @@ class VentasController {
         
         $whereClause = implode(" AND ", $where);
         
-        // Contar total de registros
         $countSql = "SELECT COUNT(*) FROM operaciones o JOIN vendedores v ON v.id = o.vendedor_id WHERE $whereClause";
         $countStmt = $pdo->prepare($countSql);
         $countStmt->execute($params);
         $totalRecords = $countStmt->fetchColumn();
         $totalPages = ceil($totalRecords / $limit);
         
-        // Obtener registros paginados
         $sql = "
             SELECT o.id, o.fecha, v.nombre as vendedor, o.producto, o.referencia, 
                    o.cantidad, o.valor_unitario, o.valor_vendido, o.impuesto

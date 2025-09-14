@@ -255,6 +255,8 @@ $(document).ready(function() {
         "scrollY": "400px",
         "scrollCollapse": true,
         "paging": true,
+        "autoWidth": false,
+        "responsive": true,
         "ajax": {
             "url": "index.php?controller=Comisiones&action=datatable",
             "type": "GET",
@@ -265,15 +267,15 @@ $(document).ready(function() {
             }
         },
         "columns": [
-            { "data": 0 },
-            { "data": 1 },
-            { "data": 2 },
-            { "data": 3 },
-            { "data": 4 },
-            { "data": 5 },
-            { "data": 6 },
-            { "data": 7 },
-            { "data": 8, "orderable": false }
+            { "data": 0, "title": "Vendedor", "width": "20%" },
+            { "data": 1, "title": "Total Ventas", "width": "12%" },
+            { "data": 2, "title": "Total Devoluciones", "width": "12%" },
+            { "data": 3, "title": "Índice Dev.", "width": "8%" },
+            { "data": 4, "title": "Comisión Base", "width": "10%" },
+            { "data": 5, "title": "Bono", "width": "8%" },
+            { "data": 6, "title": "Penalización", "width": "10%" },
+            { "data": 7, "title": "Comisión Final", "width": "12%" },
+            { "data": 8, "title": "Acciones", "width": "8%", "orderable": false }
         ],
         "pageLength": 25,
         "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
@@ -295,6 +297,43 @@ $(document).ready(function() {
         "order": [[0, "asc"]]
     });
 });
+
+<style>
+#comisionesTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#comisionesTable th {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#comisionesTable td {
+    vertical-align: middle;
+    padding: 8px 12px;
+}
+
+#comisionesTable .text-center {
+    text-align: center !important;
+}
+
+#comisionesTable .text-end {
+    text-align: right !important;
+}
+
+#comisionesTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+</style>
 
 function verDetalleComision(vendedorId, anio, mes) {
     $('#detalleContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>');
