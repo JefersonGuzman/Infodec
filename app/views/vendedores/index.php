@@ -28,7 +28,8 @@
             <div class="col-md-4">
                 <label for="orden" class="form-label text-dark">Ordenar por</label>
                 <select class="form-select" id="orden" name="orden">
-                    <option value="nombre" <?php echo ($_GET['orden'] ?? 'nombre') == 'nombre' ? 'selected' : ''; ?>>Nombre</option>
+                    <option value="" <?php echo ($_GET['orden'] ?? '') == '' ? 'selected' : ''; ?>>ID (Más recientes)</option>
+                    <option value="nombre" <?php echo ($_GET['orden'] ?? '') == 'nombre' ? 'selected' : ''; ?>>Nombre</option>
                     <option value="ventas" <?php echo ($_GET['orden'] ?? '') == 'ventas' ? 'selected' : ''; ?>>Total Ventas</option>
                     <option value="operaciones" <?php echo ($_GET['orden'] ?? '') == 'operaciones' ? 'selected' : ''; ?>>Total Operaciones</option>
                 </select>
@@ -81,91 +82,24 @@
         </h5>
     </div>
     <div class="card-body p-0">
-        <?php if (empty($vendedores)): ?>
-            <div class="text-center py-5">
-                <i class="bi bi-people display-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay vendedores registrados</p>
-            </div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Total Operaciones</th>
-                            <th>Total Ventas</th>
-                            <th>Total Devoluciones</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($vendedores as $vendedor): ?>
-                            <tr>
-                                <td><?php echo $vendedor['id']; ?></td>
-                                <td><?php echo htmlspecialchars($vendedor['nombre']); ?></td>
-                                <td><?php echo number_format($vendedor['total_operaciones']); ?></td>
-                                <td>$<?php echo number_format($vendedor['total_ventas'], 0, ',', '.'); ?></td>
-                                <td>$<?php echo number_format($vendedor['total_devoluciones'], 0, ',', '.'); ?></td>
-                                <td>
-                                    <button type="button" class="btn btn-outline-primary btn-sm me-1" 
-                                            onclick="editVendedor(<?php echo $vendedor['id']; ?>)">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="index.php?controller=Vendedores&action=delete&id=<?php echo $vendedor['id']; ?>" 
-                                       class="btn btn-outline-danger btn-sm"
-                                       onclick="return confirm('¿Está seguro de eliminar este vendedor?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
+        <div class="table-container">
+            <table id="vendedoresTable" class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Total Operaciones</th>
+                        <th>Total Ventas</th>
+                        <th>Total Devoluciones</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
     
-    <!-- Paginación -->
-    <?php if ($totalPages > 1): ?>
-        <div class="card-footer bg-light">
-            <nav aria-label="Paginación de vendedores">
-                <ul class="pagination pagination-sm justify-content-center mb-0">
-                    <?php 
-                    $filtros = http_build_query([
-                        'buscar' => $_GET['buscar'] ?? '',
-                        'orden' => $_GET['orden'] ?? 'nombre'
-                    ]);
-                    ?>
-                    
-                    <?php if ($page > 1): ?>
-                        <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Vendedores&action=index&page=<?php echo $page - 1; ?>&<?php echo $filtros; ?>">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                    
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                            <a class="page-link <?php echo $i == $page ? 'bg-dark text-white' : 'text-dark'; ?>" 
-                               href="index.php?controller=Vendedores&action=index&page=<?php echo $i; ?>&<?php echo $filtros; ?>">
-                                <?php echo $i; ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
-                    
-                    <?php if ($page < $totalPages): ?>
-                        <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Vendedores&action=index&page=<?php echo $page + 1; ?>&<?php echo $filtros; ?>">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
-        </div>
-    <?php endif; ?>
 </div>
 
 <!-- Modal para crear/editar vendedor -->
@@ -225,4 +159,44 @@ function editVendedor(id) {
             alert('Error al cargar los datos del vendedor');
         });
 }
+
+$(document).ready(function() {
+    $('#vendedoresTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "scrollY": "400px",
+        "scrollCollapse": true,
+        "paging": true,
+        "ajax": {
+            "url": "index.php?controller=Vendedores&action=datatable",
+            "type": "GET"
+        },
+        "columns": [
+            { "data": 0 },
+            { "data": 1 },
+            { "data": 2 },
+            { "data": 3 },
+            { "data": 4 },
+            { "data": 5, "orderable": false }
+        ],
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+        "language": {
+            "lengthMenu": "Mostrar _MENU_ registros por página",
+            "zeroRecords": "No se encontraron resultados",
+            "info": "Mostrando página _PAGE_ de _PAGES_",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "search": "Buscar:",
+            "processing": "Procesando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "order": [[0, "desc"]]
+    });
+});
 </script>

@@ -2,6 +2,9 @@
     <h2 class="text-dark mb-0">
         <i class="bi bi-arrow-return-left me-2"></i>Gestionar Devoluciones
     </h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cargarModal">
+        <i class="bi bi-upload me-2"></i>Cargar Datos
+    </button>
 </div>
 
 <!-- Mensajes -->
@@ -18,31 +21,6 @@
     </div>
 <?php endif; ?>
 
-<!-- Formulario de carga -->
-<div class="card mb-4">
-    <div class="card-header bg-light">
-        <h5 class="card-title mb-0 text-dark">
-            <i class="bi bi-file-earmark-arrow-up me-2"></i>Cargar Archivo CSV de Devoluciones
-        </h5>
-    </div>
-    <div class="card-body">
-        <form method="post" enctype="multipart/form-data" action="index.php?controller=Devoluciones&action=upload">
-            <div class="row">
-                <div class="col-md-8">
-                    <input type="file" name="csvfile" accept=".csv" class="form-control" required>
-                    <div class="form-text text-muted">
-                        Seleccione un archivo CSV con formato: FechaVenta, Vendedor, Producto, Referencia, Cantidad, ValorUnitario, ValorVendido, Impuesto, TipoOperacion, Motivo
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-upload me-2"></i>Subir y Cargar
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- Filtros -->
 <div class="card mb-4">
@@ -108,97 +86,107 @@
         </h5>
     </div>
     <div class="card-body p-0">
-        <?php if (empty($devoluciones)): ?>
-            <div class="text-center py-5">
-                <i class="bi bi-inbox display-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay registros de devoluciones disponibles</p>
-            </div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Fecha</th>
-                            <th>Vendedor</th>
-                            <th>Producto</th>
-                            <th>Referencia</th>
-                            <th>Cantidad</th>
-                            <th>Valor Unitario</th>
-                            <th>Valor Vendido</th>
-                            <th>Impuesto</th>
-                            <th>Motivo</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($devoluciones as $devolucion): ?>
-                            <tr>
-                                <td><?php echo $devolucion['id']; ?></td>
-                                <td><?php echo date('d/m/Y', strtotime($devolucion['fecha'])); ?></td>
-                                <td><?php echo htmlspecialchars($devolucion['vendedor']); ?></td>
-                                <td><?php echo htmlspecialchars($devolucion['producto']); ?></td>
-                                <td><?php echo htmlspecialchars($devolucion['referencia']); ?></td>
-                                <td><?php echo number_format($devolucion['cantidad']); ?></td>
-                                <td>$<?php echo number_format($devolucion['valor_unitario'], 0, ',', '.'); ?></td>
-                                <td>$<?php echo number_format($devolucion['valor_vendido'], 0, ',', '.'); ?></td>
-                                <td>$<?php echo number_format($devolucion['impuesto'], 0, ',', '.'); ?></td>
-                                <td><?php echo htmlspecialchars($devolucion['motivo'] ?? 'N/A'); ?></td>
-                                <td>
-                                    <a href="index.php?controller=Devoluciones&action=delete&id=<?php echo $devolucion['id']; ?>" 
-                                       class="btn btn-outline-danger btn-sm"
-                                       onclick="return confirm('¿Está seguro de eliminar esta devolución?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
+        <div class="table-container">
+            <table id="devolucionesTable" class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Vendedor</th>
+                        <th>Producto</th>
+                        <th>Referencia</th>
+                        <th>Cantidad</th>
+                        <th>Valor Unitario</th>
+                        <th>Valor Vendido</th>
+                        <th>Impuesto</th>
+                        <th>Motivo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
     
-    <!-- Paginación -->
-    <?php if ($totalPages > 1): ?>
-        <div class="card-footer bg-light">
-            <nav aria-label="Paginación de devoluciones">
-                <ul class="pagination pagination-sm justify-content-center mb-0">
-                    <?php 
-                    $filtros = http_build_query([
-                        'fecha_desde' => $_GET['fecha_desde'] ?? '',
-                        'fecha_hasta' => $_GET['fecha_hasta'] ?? '',
-                        'vendedor' => $_GET['vendedor'] ?? '',
-                        'producto' => $_GET['producto'] ?? ''
-                    ]);
-                    ?>
-                    
-                    <?php if ($page > 1): ?>
-                        <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Devoluciones&action=index&page=<?php echo $page - 1; ?>&<?php echo $filtros; ?>">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                    
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                            <a class="page-link <?php echo $i == $page ? 'bg-dark text-white' : 'text-dark'; ?>" 
-                               href="index.php?controller=Devoluciones&action=index&page=<?php echo $i; ?>&<?php echo $filtros; ?>">
-                                <?php echo $i; ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
-                    
-                    <?php if ($page < $totalPages): ?>
-                        <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Devoluciones&action=index&page=<?php echo $page + 1; ?>&<?php echo $filtros; ?>">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
-        </div>
-    <?php endif; ?>
 </div>
+
+<!-- Modal para cargar datos -->
+<div class="modal fade" id="cargarModal" tabindex="-1" aria-labelledby="cargarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-dark" id="cargarModalLabel">
+                    <i class="bi bi-file-earmark-arrow-up me-2"></i>Cargar Archivo CSV de Devoluciones
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="index.php?controller=Devoluciones&action=upload">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="csvfile" class="form-label text-dark">Seleccionar Archivo CSV</label>
+                        <input type="file" name="csvfile" accept=".csv" class="form-control" id="csvfile" required>
+                        <div class="form-text text-muted">
+                            Formato requerido: FechaVenta, Vendedor, Producto, Referencia, Cantidad, ValorUnitario, ValorVendido, Impuesto, TipoOperacion, Motivo
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>Subir y Cargar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#devolucionesTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "scrollY": "400px",
+        "scrollCollapse": true,
+        "paging": true,
+        "ajax": {
+            "url": "index.php?controller=Devoluciones&action=datatable",
+            "type": "GET"
+        },
+        "columns": [
+            { "data": 0 },
+            { "data": 1 },
+            { "data": 2 },
+            { "data": 3 },
+            { "data": 4 },
+            { "data": 5 },
+            { "data": 6 },
+            { "data": 7 },
+            { "data": 8 },
+            { "data": 9 },
+            { "data": 10, "orderable": false }
+        ],
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+        "language": {
+            "lengthMenu": "Mostrar _MENU_ registros por página",
+            "zeroRecords": "No se encontraron resultados",
+            "info": "Mostrando página _PAGE_ de _PAGES_",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "search": "Buscar:",
+            "processing": "Procesando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "order": [[0, "desc"]]
+    });
+});
+</script>

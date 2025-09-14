@@ -182,7 +182,7 @@ class Comision {
             $params[] = $mes;
         }
         
-        $sql .= " ORDER BY c.anio DESC, c.mes DESC";
+        $sql .= " ORDER BY c.id DESC";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -219,7 +219,7 @@ class Comision {
             $sql .= " WHERE " . implode(" AND ", $where);
         }
         
-        $sql .= " ORDER BY c.anio DESC, c.mes DESC, c.comision_final DESC";
+        $sql .= " ORDER BY c.id DESC";
         $sql .= " LIMIT $limit OFFSET $offset";
         
         $stmt = $pdo->prepare($sql);

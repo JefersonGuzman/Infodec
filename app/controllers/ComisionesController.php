@@ -20,7 +20,6 @@ class ComisionesController {
         $comisiones = $this->comision->obtenerComisiones($anio, $mes, $limit, $offset, $vendedorId);
         $estadisticas = $this->comision->obtenerEstadisticas($anio, $mes);
         
-        // Calcular total de páginas
         $pdo = Conexion::getConexion();
         $countSql = "SELECT COUNT(*) FROM comisiones c";
         $params = [];
@@ -146,16 +145,13 @@ class ComisionesController {
         
         $output = fopen('php://output', 'w');
         
-        // BOM para UTF-8
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
         
-        // Encabezados
         fputcsv($output, [
             'Vendedor', 'Año', 'Mes', 'Total Ventas', 'Total Devoluciones', 
             'Índice Devoluciones', 'Comisión Base', 'Bono', 'Penalización', 'Comisión Final'
         ]);
         
-        // Datos
         foreach ($comisiones as $comision) {
             fputcsv($output, [
                 $comision['vendedor_nombre'],
@@ -176,13 +172,108 @@ class ComisionesController {
     }
     
     private function exportarPDF($comisiones, $anio, $mes) {
-        // Implementación básica de PDF (se puede mejorar con TCPDF)
         $filename = "comisiones_{$anio}_{$mes}.pdf";
-        
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        
-        // Por ahora, redirigir a CSV hasta implementar PDF
         $this->exportarCSV($comisiones, $anio, $mes);
+    }
+    
+    public function datatable() {
+        $pdo = Conexion::getConexion();
+        
+        $draw = intval($_GET['draw']);
+        $start = intval($_GET['start']);
+        $length = intval($_GET['length']);
+        $searchValue = $_GET['search']['value'] ?? '';
+        $orderColumn = intval($_GET['order'][0]['column'] ?? 0);
+        $orderDir = $_GET['order'][0]['dir'] ?? 'desc';
+        
+        $anio = $_GET['anio'] ?? date('Y');
+        $mes = $_GET['mes'] ?? date('n');
+        $vendedorId = $_GET['vendedor'] ?? '';
+        
+        $columns = ['v.nombre', 'c.total_ventas', 'c.total_devoluciones', 'c.indice_devoluciones', 'c.comision_base', 'c.bono', 'c.penalizacion', 'c.comision_final', 'c.id'];
+        $orderBy = $columns[$orderColumn] . ' ' . strtoupper($orderDir);
+        
+        $where = ["c.anio = ?", "c.mes = ?"];
+        $params = [$anio, $mes];
+        
+        if ($vendedorId) {
+            $where[] = "c.vendedor_id = ?";
+            $params[] = $vendedorId;
+        }
+        
+        if (!empty($searchValue)) {
+            $where[] = "v.nombre LIKE ?";
+            $params[] = "%$searchValue%";
+        }
+        
+        $whereClause = implode(" AND ", $where);
+        
+        $countSql = "SELECT COUNT(*) FROM comisiones c JOIN vendedores v ON v.id = c.vendedor_id WHERE $whereClause";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $totalRecords = $countStmt->fetchColumn();
+        
+        $sql = "
+            SELECT c.id, c.vendedor_id, v.nombre as vendedor_nombre, c.anio, c.mes,
+                   c.total_ventas, c.total_devoluciones, c.indice_devoluciones,
+                   c.comision_base, c.bono, c.penalizacion, c.comision_final
+            FROM comisiones c
+            JOIN vendedores v ON v.id = c.vendedor_id
+            WHERE $whereClause
+            ORDER BY $orderBy
+            LIMIT $length OFFSET $start
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $comisiones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $data = [];
+        foreach ($comisiones as $comision) {
+            $vendedorInfo = '<strong>' . htmlspecialchars($comision['vendedor_nombre']) . '</strong><br>' .
+                           '<small class="text-muted">' . $comision['anio'] . '/' . str_pad($comision['mes'], 2, '0', STR_PAD_LEFT) . '</small>';
+            
+            $indiceBadge = $comision['indice_devoluciones'] > 5 ? 
+                '<span class="badge bg-danger">' . number_format($comision['indice_devoluciones'], 2, ',', '.') . '%</span>' :
+                '<span class="badge bg-success">' . number_format($comision['indice_devoluciones'], 2, ',', '.') . '%</span>';
+            
+            $bono = $comision['bono'] > 0 ? 
+                '<span class="text-success"><i class="bi bi-plus-circle"></i> $' . number_format($comision['bono'], 0, ',', '.') . '</span>' :
+                '<span class="text-muted">-</span>';
+            
+            $penalizacion = $comision['penalizacion'] > 0 ? 
+                '<span class="text-danger"><i class="bi bi-dash-circle"></i> $' . number_format($comision['penalizacion'], 0, ',', '.') . '</span>' :
+                '<span class="text-muted">-</span>';
+            
+            $acciones = '<a href="index.php?controller=Comisiones&action=vendedor&id=' . $comision['vendedor_id'] . '" ' .
+                       'class="btn btn-outline-info btn-sm me-1" title="Ver detalle"><i class="bi bi-eye"></i></a>' .
+                       '<a href="index.php?controller=Comisiones&action=recalcular&id=' . $comision['id'] . '" ' .
+                       'class="btn btn-outline-warning btn-sm" title="Recalcular" ' .
+                       'onclick="return confirm(\'¿Recalcular esta comisión?\')"><i class="bi bi-arrow-clockwise"></i></a>';
+            
+            $data[] = [
+                $vendedorInfo,
+                '$' . number_format($comision['total_ventas'], 0, ',', '.'),
+                '$' . number_format($comision['total_devoluciones'], 0, ',', '.'),
+                $indiceBadge,
+                '$' . number_format($comision['comision_base'], 0, ',', '.'),
+                $bono,
+                $penalizacion,
+                '<strong class="text-primary">$' . number_format($comision['comision_final'], 0, ',', '.') . '</strong>',
+                $acciones
+            ];
+        }
+        
+        $response = [
+            "draw" => $draw,
+            "recordsTotal" => $totalRecords,
+            "recordsFiltered" => $totalRecords,
+            "data" => $data
+        ];
+        
+        header('Content-Type: application/json');
+        echo json_encode($response);
     }
 }

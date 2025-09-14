@@ -10,7 +10,7 @@ class VendedoresController {
         
         // Obtener filtros
         $buscar = $_GET['buscar'] ?? '';
-        $orden = $_GET['orden'] ?? 'nombre';
+        $orden = $_GET['orden'] ?? '';
         
         $pdo = Conexion::getConexion();
         
@@ -26,16 +26,19 @@ class VendedoresController {
         $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
         
         // Determinar orden
-        $orderBy = "v.nombre";
+        $orderBy = "v.id DESC";
         switch ($orden) {
             case 'ventas':
-                $orderBy = "total_ventas DESC";
+                $orderBy = "total_ventas DESC, v.id DESC";
                 break;
             case 'operaciones':
-                $orderBy = "total_operaciones DESC";
+                $orderBy = "total_operaciones DESC, v.id DESC";
+                break;
+            case 'nombre':
+                $orderBy = "v.nombre, v.id DESC";
                 break;
             default:
-                $orderBy = "v.nombre";
+                $orderBy = "v.id DESC";
         }
         
         // Contar total de registros
@@ -156,5 +159,74 @@ class VendedoresController {
             header('Content-Type: application/json');
             echo json_encode($vendedor);
         }
+    }
+    
+    public function datatable() {
+        $pdo = Conexion::getConexion();
+        
+        $draw = intval($_GET['draw']);
+        $start = intval($_GET['start']);
+        $length = intval($_GET['length']);
+        $searchValue = $_GET['search']['value'] ?? '';
+        $orderColumn = intval($_GET['order'][0]['column'] ?? 0);
+        $orderDir = $_GET['order'][0]['dir'] ?? 'desc';
+        
+        $columns = ['v.id', 'v.nombre', 'total_operaciones', 'total_ventas', 'total_devoluciones', 'v.id'];
+        $orderBy = $columns[$orderColumn] . ' ' . strtoupper($orderDir);
+        
+        $where = [];
+        $params = [];
+        
+        if (!empty($searchValue)) {
+            $where[] = "v.nombre LIKE ?";
+            $params[] = "%$searchValue%";
+        }
+        
+        $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+        
+        $countSql = "SELECT COUNT(*) FROM vendedores v $whereClause";
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $totalRecords = $countStmt->fetchColumn();
+        
+        $sql = "
+            SELECT v.id, v.nombre, 
+                   COUNT(o.id) as total_operaciones,
+                   COALESCE(SUM(CASE WHEN o.tipo_operacion = 'Venta' THEN o.valor_vendido ELSE 0 END), 0) as total_ventas,
+                   COALESCE(SUM(CASE WHEN o.tipo_operacion = 'Devolución' THEN o.valor_vendido ELSE 0 END), 0) as total_devoluciones
+            FROM vendedores v
+            LEFT JOIN operaciones o ON v.id = o.vendedor_id
+            $whereClause
+            GROUP BY v.id, v.nombre
+            ORDER BY $orderBy
+            LIMIT $length OFFSET $start
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $vendedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $data = [];
+        foreach ($vendedores as $vendedor) {
+            $data[] = [
+                $vendedor['id'],
+                htmlspecialchars($vendedor['nombre']),
+                number_format($vendedor['total_operaciones']),
+                '$' . number_format($vendedor['total_ventas'], 0, ',', '.'),
+                '$' . number_format($vendedor['total_devoluciones'], 0, ',', '.'),
+                '<button type="button" class="btn btn-outline-primary btn-sm me-1" onclick="editVendedor(' . $vendedor['id'] . ')"><i class="bi bi-pencil"></i></button>' .
+                '<a href="index.php?controller=Vendedores&action=delete&id=' . $vendedor['id'] . '" class="btn btn-outline-danger btn-sm" onclick="return confirm(\'¿Está seguro de eliminar este vendedor?\')"><i class="bi bi-trash"></i></a>'
+            ];
+        }
+        
+        $response = [
+            "draw" => $draw,
+            "recordsTotal" => $totalRecords,
+            "recordsFiltered" => $totalRecords,
+            "data" => $data
+        ];
+        
+        header('Content-Type: application/json');
+        echo json_encode($response);
     }
 }

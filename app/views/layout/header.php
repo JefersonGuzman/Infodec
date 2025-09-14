@@ -6,6 +6,10 @@
     <title>VentasPlus - Sistema de Gestión de Comisiones</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <style>
         .sidebar {
             min-height: 100vh;
@@ -67,6 +71,31 @@
         .form-control:focus {
             border-color: #000;
             box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+        }
+        .table td, .table th {
+            padding: 10px;
+        }
+        .table-container {
+            padding: 15px;
+            height: auto;
+            overflow-y: auto;
+        }
+        .table-container .table {
+            margin-bottom: 0;
+        }
+        .dataTables_wrapper {
+            position: relative;
+        }
+        .dataTables_length,
+        .dataTables_filter {
+            margin-bottom: 15px;
+        }
+        .dataTables_info,
+        .dataTables_paginate {
+            margin-top: 15px;
+        }
+        .dataTables_scrollBody {
+            height: 400px !important;
         }
     </style>
 </head>

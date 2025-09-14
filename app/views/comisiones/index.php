@@ -141,126 +141,27 @@
         </h5>
     </div>
     <div class="card-body p-0">
-        <?php if (empty($comisiones)): ?>
-            <div class="text-center py-5">
-                <i class="bi bi-calculator display-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay comisiones calculadas para el período seleccionado</p>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#calcularModal">
-                    <i class="bi bi-calculator me-2"></i>Calcular Comisiones
-                </button>
-            </div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Vendedor</th>
-                            <th>Total Ventas</th>
-                            <th>Total Devoluciones</th>
-                            <th>Índice Dev.</th>
-                            <th>Comisión Base</th>
-                            <th>Bono</th>
-                            <th>Penalización</th>
-                            <th>Comisión Final</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($comisiones as $comision): ?>
-                            <tr>
-                                <td>
-                                    <strong><?php echo htmlspecialchars($comision['vendedor_nombre']); ?></strong>
-                                    <br>
-                                    <small class="text-muted"><?php echo $comision['anio']; ?>/<?php echo str_pad($comision['mes'], 2, '0', STR_PAD_LEFT); ?></small>
-                                </td>
-                                <td>$<?php echo number_format($comision['total_ventas'], 0, ',', '.'); ?></td>
-                                <td>$<?php echo number_format($comision['total_devoluciones'], 0, ',', '.'); ?></td>
-                                <td>
-                                    <span class="badge <?php echo $comision['indice_devoluciones'] > 5 ? 'bg-danger' : 'bg-success'; ?>">
-                                        <?php echo number_format($comision['indice_devoluciones'], 2, ',', '.'); ?>%
-                                    </span>
-                                </td>
-                                <td>$<?php echo number_format($comision['comision_base'], 0, ',', '.'); ?></td>
-                                <td>
-                                    <?php if ($comision['bono'] > 0): ?>
-                                        <span class="text-success">
-                                            <i class="bi bi-plus-circle"></i> $<?php echo number_format($comision['bono'], 0, ',', '.'); ?>
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($comision['penalizacion'] > 0): ?>
-                                        <span class="text-danger">
-                                            <i class="bi bi-dash-circle"></i> $<?php echo number_format($comision['penalizacion'], 0, ',', '.'); ?>
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <strong class="text-primary">$<?php echo number_format($comision['comision_final'], 0, ',', '.'); ?></strong>
-                                </td>
-                                <td>
-                                    <a href="index.php?controller=Comisiones&action=vendedor&id=<?php echo $comision['vendedor_id']; ?>" 
-                                       class="btn btn-outline-info btn-sm me-1" title="Ver detalle">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="index.php?controller=Comisiones&action=recalcular&id=<?php echo $comision['id']; ?>" 
-                                       class="btn btn-outline-warning btn-sm" title="Recalcular"
-                                       onclick="return confirm('¿Recalcular esta comisión?')">
-                                        <i class="bi bi-arrow-clockwise"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
+        <div class="table-container">
+            <table id="comisionesTable" class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Vendedor</th>
+                        <th>Total Ventas</th>
+                        <th>Total Devoluciones</th>
+                        <th>Índice Dev.</th>
+                        <th>Comisión Base</th>
+                        <th>Bono</th>
+                        <th>Penalización</th>
+                        <th>Comisión Final</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
     
-    <?php if ($totalPages > 1): ?>
-        <div class="card-footer bg-light">
-            <nav aria-label="Paginación de comisiones">
-                <ul class="pagination pagination-sm justify-content-center mb-0">
-                    <?php 
-                    $filtros = http_build_query([
-                        'anio' => $_GET['anio'] ?? '',
-                        'mes' => $_GET['mes'] ?? '',
-                        'vendedor' => $_GET['vendedor'] ?? ''
-                    ]);
-                    ?>
-                    
-                    <?php if ($page > 1): ?>
-                        <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Comisiones&action=index&page=<?php echo $page - 1; ?>&<?php echo $filtros; ?>">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                    
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                            <a class="page-link <?php echo $i == $page ? 'bg-dark text-white' : 'text-dark'; ?>" 
-                               href="index.php?controller=Comisiones&action=index&page=<?php echo $i; ?>&<?php echo $filtros; ?>">
-                                <?php echo $i; ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
-                    
-                    <?php if ($page < $totalPages): ?>
-                        <li class="page-item">
-                            <a class="page-link text-dark" href="index.php?controller=Comisiones&action=index&page=<?php echo $page + 1; ?>&<?php echo $filtros; ?>">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
-        </div>
-    <?php endif; ?>
 </div>
 
 <div class="modal fade" id="calcularModal" tabindex="-1" aria-labelledby="calcularModalLabel" aria-hidden="true">
@@ -314,3 +215,57 @@
         </div>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    var anio = '<?php echo $anio; ?>';
+    var mes = '<?php echo $mes; ?>';
+    var vendedor = '<?php echo $_GET['vendedor'] ?? ''; ?>';
+    
+    $('#comisionesTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "scrollY": "400px",
+        "scrollCollapse": true,
+        "paging": true,
+        "ajax": {
+            "url": "index.php?controller=Comisiones&action=datatable",
+            "type": "GET",
+            "data": function(d) {
+                d.anio = anio;
+                d.mes = mes;
+                d.vendedor = vendedor;
+            }
+        },
+        "columns": [
+            { "data": 0 },
+            { "data": 1 },
+            { "data": 2 },
+            { "data": 3 },
+            { "data": 4 },
+            { "data": 5 },
+            { "data": 6 },
+            { "data": 7 },
+            { "data": 8, "orderable": false }
+        ],
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+        "language": {
+            "lengthMenu": "Mostrar _MENU_ registros por página",
+            "zeroRecords": "No se encontraron resultados",
+            "info": "Mostrando página _PAGE_ de _PAGES_",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "search": "Buscar:",
+            "processing": "Procesando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "order": [[0, "asc"]]
+    });
+});
+</script>
