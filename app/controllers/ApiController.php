@@ -80,12 +80,6 @@ class ApiController {
      * Obtener productos con filtros
      */
     public function productos() {
-        $categoria = $_GET['categoria'] ?? '';
-        $precioMin = $_GET['precio_min'] ?? '';
-        $precioMax = $_GET['precio_max'] ?? '';
-        $limit = $_GET['limit'] ?? 50;
-        
-        $productos = $this->apiService->obtenerProductosFiltrados($categoria, $precioMin, $precioMax, $limit);
         $categorias = $this->obtenerCategorias();
         
         include "app/views/layout/header.php";

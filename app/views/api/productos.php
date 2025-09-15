@@ -10,7 +10,7 @@
 <div class="card mb-4">
     <div class="card-header bg-light">
         <h5 class="card-title mb-0 text-dark">
-            <i class="bi bi-funnel me-2"></i>Filtros
+            <i class="bi bi-funnel me-2"></i>Filtros de Búsqueda
         </h5>
     </div>
     <div class="card-body">
@@ -44,18 +44,21 @@
             </div>
             
             <div class="col-md-2">
-                <label for="limit" class="form-label text-dark">Límite</label>
-                <select class="form-select" id="limit" name="limit">
-                    <option value="25" <?php echo ($_GET['limit'] ?? '50') == '25' ? 'selected' : ''; ?>>25</option>
-                    <option value="50" <?php echo ($_GET['limit'] ?? '50') == '50' ? 'selected' : ''; ?>>50</option>
-                    <option value="100" <?php echo ($_GET['limit'] ?? '50') == '100' ? 'selected' : ''; ?>>100</option>
+                <label for="disponible" class="form-label text-dark">Estado</label>
+                <select class="form-select" id="disponible" name="disponible">
+                    <option value="">Todos</option>
+                    <option value="1" <?php echo ($_GET['disponible'] ?? '') == '1' ? 'selected' : ''; ?>>Disponibles</option>
+                    <option value="0" <?php echo ($_GET['disponible'] ?? '') == '0' ? 'selected' : ''; ?>>No Disponibles</option>
                 </select>
             </div>
             
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary me-2">
                     <i class="bi bi-search me-2"></i>Filtrar
                 </button>
+                <a href="index.php?controller=Api&action=productos" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Limpiar
+                </a>
             </div>
         </form>
     </div>
@@ -68,10 +71,11 @@
         </h5>
     </div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
+        <div class="table-container">
+            <table id="productosTable" class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>ID API</th>
                         <th>Título</th>
                         <th>Categoría</th>
@@ -82,57 +86,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($productos)): ?>
-                        <?php foreach ($productos as $producto): ?>
-                            <tr>
-                                <td>
-                                    <span class="badge bg-primary"><?php echo $producto['id_api']; ?></span>
-                                </td>
-                                <td>
-                                    <div>
-                                        <strong><?php echo htmlspecialchars($producto['titulo']); ?></strong>
-                                        <?php if ($producto['descripcion']): ?>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars(substr($producto['descripcion'], 0, 100)) . '...'; ?></small>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary"><?php echo htmlspecialchars($producto['categoria']); ?></span>
-                                </td>
-                                <td>
-                                    <strong class="text-success">$<?php echo number_format($producto['precio_base'], 0, ',', '.'); ?></strong>
-                                </td>
-                                <td>
-                                    <?php if ($producto['disponible']): ?>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle me-1"></i>Disponible
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="badge bg-danger">
-                                            <i class="bi bi-x-circle me-1"></i>No Disponible
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <small class="text-muted">
-                                        <?php echo date('d/m/Y H:i', strtotime($producto['fecha_sincronizacion'])); ?>
-                                    </small>
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-outline-info btn-sm" 
-                                            onclick="verDetalle(<?php echo $producto['id']; ?>)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                <i class="bi bi-inbox me-2"></i>No hay productos disponibles
-                            </td>
-                        </tr>
-                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -168,6 +121,60 @@
 </div>
 
 <script>
+$(document).ready(function() {
+    // Obtener filtros de la URL
+    var categoria = '<?php echo $_GET['categoria'] ?? ''; ?>';
+    var precioMin = '<?php echo $_GET['precio_min'] ?? ''; ?>';
+    var precioMax = '<?php echo $_GET['precio_max'] ?? ''; ?>';
+    var disponible = '<?php echo $_GET['disponible'] ?? ''; ?>';
+    
+    $('#productosTable').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "scrollY": "400px",
+        "scrollCollapse": true,
+        "paging": true,
+        "ajax": {
+            "url": "index.php?controller=Api&action=datatable",
+            "type": "GET",
+            "data": function(d) {
+                d.categoria = categoria;
+                d.precio_min = precioMin;
+                d.precio_max = precioMax;
+                d.disponible = disponible;
+            }
+        },
+        "columns": [
+            { "data": 0, "title": "ID", "width": "5%" },
+            { "data": 1, "title": "ID API", "width": "8%" },
+            { "data": 2, "title": "Título", "width": "35%" },
+            { "data": 3, "title": "Categoría", "width": "12%" },
+            { "data": 4, "title": "Precio Base", "width": "12%" },
+            { "data": 5, "title": "Estado", "width": "10%" },
+            { "data": 6, "title": "Última Sincronización", "width": "13%" },
+            { "data": 7, "title": "Acciones", "width": "5%", "orderable": false }
+        ],
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
+        "language": {
+            "lengthMenu": "Mostrar _MENU_ registros por página",
+            "zeroRecords": "No se encontraron resultados",
+            "info": "Mostrando página _PAGE_ de _PAGES_",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "search": "Buscar:",
+            "processing": "Procesando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "order": [[6, "desc"]]
+    });
+});
+
 function verDetalle(productoId) {
     $('#detalleContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>');
     
@@ -193,3 +200,57 @@ function verDetalle(productoId) {
     }, 1000);
 }
 </script>
+
+<style>
+#productosTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#productosTable th {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#productosTable td {
+    vertical-align: middle;
+    padding: 8px 12px;
+}
+
+#productosTable .text-center {
+    text-align: center !important;
+}
+
+#productosTable .text-end {
+    text-align: right !important;
+}
+
+#productosTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+/* Responsive para la tabla */
+@media (max-width: 992px) {
+    #productosTable th,
+    #productosTable td {
+        font-size: 0.85rem;
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    #productosTable th,
+    #productosTable td {
+        font-size: 0.8rem;
+        padding: 4px 6px;
+    }
+}
+</style>

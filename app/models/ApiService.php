@@ -308,4 +308,100 @@ class ApiService {
             return false;
         }
     }
+    
+    /**
+     * Obtiene productos para DataTable con paginación y filtros
+     */
+    public function obtenerProductosDataTable($start, $length, $search, $orderColumn, $orderDir, $categoria = '', $precioMin = '', $precioMax = '', $disponible = '') {
+        try {
+            // Columnas para ordenamiento
+            $columns = ['id', 'id_api', 'titulo', 'categoria', 'precio_base', 'disponible', 'fecha_sincronizacion'];
+            $orderBy = isset($columns[$orderColumn]) ? $columns[$orderColumn] : 'fecha_sincronizacion';
+            $orderDirection = strtoupper($orderDir) === 'ASC' ? 'ASC' : 'DESC';
+            
+            // Construir WHERE clause
+            $where = [];
+            $params = [];
+            
+            if ($categoria) {
+                $where[] = "categoria = ?";
+                $params[] = $categoria;
+            }
+            
+            if ($precioMin) {
+                $where[] = "precio_base >= ?";
+                $params[] = $precioMin;
+            }
+            
+            if ($precioMax) {
+                $where[] = "precio_base <= ?";
+                $params[] = $precioMax;
+            }
+            
+            if ($disponible !== '') {
+                $where[] = "disponible = ?";
+                $params[] = $disponible;
+            }
+            
+            // Búsqueda general
+            if ($search) {
+                $where[] = "(titulo LIKE ? OR descripcion LIKE ? OR categoria LIKE ?)";
+                $searchTerm = "%{$search}%";
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+            }
+            
+            $whereClause = $where ? "WHERE " . implode(" AND ", $where) : "";
+            
+            // Contar total de registros
+            $countSql = "SELECT COUNT(*) FROM productos_api $whereClause";
+            $countStmt = $this->pdo->prepare($countSql);
+            $countStmt->execute($params);
+            $totalRecords = $countStmt->fetchColumn();
+            
+            // Obtener datos paginados
+            $sql = "SELECT id, id_api, titulo, descripcion, precio_base, categoria, disponible, fecha_sincronizacion 
+                    FROM productos_api 
+                    $whereClause 
+                    ORDER BY $orderBy $orderDirection 
+                    LIMIT $start, $length";
+            
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Formatear datos para DataTable
+            $formattedData = [];
+            foreach ($data as $row) {
+                $formattedData[] = [
+                    $row['id'],
+                    '<span class="badge bg-primary">' . $row['id_api'] . '</span>',
+                    '<div><strong>' . htmlspecialchars($row['titulo']) . '</strong>' . 
+                    ($row['descripcion'] ? '<br><small class="text-muted">' . htmlspecialchars(substr($row['descripcion'], 0, 100)) . '...</small>' : '') . '</div>',
+                    '<span class="badge bg-secondary">' . htmlspecialchars($row['categoria']) . '</span>',
+                    '<strong class="text-success">$' . number_format($row['precio_base'], 0, ',', '.') . '</strong>',
+                    $row['disponible'] ? 
+                        '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Disponible</span>' : 
+                        '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>No Disponible</span>',
+                    '<small class="text-muted">' . date('d/m/Y H:i', strtotime($row['fecha_sincronizacion'])) . '</small>',
+                    '<button type="button" class="btn btn-outline-info btn-sm" onclick="verDetalle(' . $row['id'] . ')"><i class="bi bi-eye"></i></button>'
+                ];
+            }
+            
+            return [
+                'total' => $totalRecords,
+                'filtered' => $totalRecords,
+                'data' => $formattedData
+            ];
+            
+        } catch (Exception $e) {
+            error_log("Error en ApiService::obtenerProductosDataTable: " . $e->getMessage());
+            return [
+                'total' => 0,
+                'filtered' => 0,
+                'data' => []
+            ];
+        }
+    }
 }

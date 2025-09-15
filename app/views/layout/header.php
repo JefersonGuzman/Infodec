@@ -13,9 +13,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .sidebar {
-            min-height: 100vh;
+            height: 100vh;
             background-color: #f8f9fa;
             border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
         .sidebar .nav-link {
             color: #000;
@@ -34,6 +39,18 @@
         .main-content {
             background-color: #fff;
             min-height: 100vh;
+            margin-left: 0;
+            padding-left: 0;
+        }
+        
+        /* Ajuste para el contenido principal cuando el sidebar está fijo */
+        .main-content-wrapper {
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content-wrapper.collapsed {
+            margin-left: 60px;
         }
         .btn-primary {
             background-color: #000;
@@ -102,6 +119,7 @@
         /* Sidebar Collapsible Styles */
         .sidebar {
             transition: all 0.3s ease;
+            width: 250px;
         }
         
         .sidebar.collapsed {
@@ -123,10 +141,6 @@
         
         .sidebar.collapsed .nav-link i {
             margin-right: 0;
-        }
-        
-        .sidebar.collapsed .nav-text {
-            display: none;
         }
         
         .sidebar .border-top {
@@ -152,17 +166,6 @@
         
         .main-content {
             min-height: 100vh;
-        }
-        
-        /* Cuando el sidebar está colapsado, el contenido principal se expande */
-        .sidebar.collapsed {
-            flex: 0 0 60px;
-            max-width: 60px;
-        }
-        
-        .sidebar.collapsed ~ #main-content {
-            flex: 0 0 calc(100% - 60px);
-            max-width: calc(100% - 60px);
         }
         
         /* Ajuste para el contenedor principal */
@@ -191,8 +194,12 @@
                 left: 0;
             }
             
-            #main-content {
-                margin-left: 0;
+            .main-content-wrapper {
+                margin-left: 0 !important;
+            }
+            
+            .main-content-wrapper.collapsed {
+                margin-left: 0 !important;
             }
         }
         
@@ -215,52 +222,48 @@
 <body>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-3 col-lg-2 px-0" id="sidebar">
-                <div class="sidebar d-flex flex-column">
-                    <div class="p-3">
-                        <h4 class="text-dark mb-0">
-                            <i class="bi bi-graph-up-arrow"></i> <span id="sidebar-title">VentasPlus</span>
-                        </h4>
-                    </div>
-                    <nav class="nav flex-column flex-grow-1">
-                        <a class="nav-link" href="index.php?controller=Dashboard&action=index">
-                            <i class="bi bi-house me-2"></i> <span class="nav-text">Dashboard</span>
-                        </a>
-                        <a class="nav-link" href="index.php?controller=Ventas&action=index">
-                            <i class="bi bi-upload me-2"></i> <span class="nav-text">Cargar Ventas</span>
-                        </a>
-                        <a class="nav-link" href="index.php?controller=Devoluciones&action=index">
-                            <i class="bi bi-arrow-return-left me-2"></i> <span class="nav-text">Cargar Devoluciones</span>
-                        </a>
-                        <a class="nav-link" href="index.php?controller=Vendedores&action=index">
-                            <i class="bi bi-people me-2"></i> <span class="nav-text">Gestionar Vendedores</span>
-                        </a>
-                        <a class="nav-link" href="index.php?controller=Comisiones&action=index">
-                            <i class="bi bi-calculator me-2"></i> <span class="nav-text">Comisiones</span>
-                        </a>
-                        <a class="nav-link" href="index.php?controller=Api&action=index">
-                            <i class="bi bi-cloud-download me-2"></i> <span class="nav-text">API Externa</span>
-                        </a>
-                    </nav>
-                    <div class="p-3 border-top">
-                        <button class="btn btn-sm btn-outline-secondary w-100 d-none d-md-block" id="sidebar-toggle-desktop" title="Colapsar/Expandir menú">
-                            <i class="bi bi-chevron-left"></i> <span class="nav-text">Colapsar</span>
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary d-md-none" id="sidebar-toggle-mobile-close">
-                            <i class="bi bi-x"></i> Cerrar
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-9 col-lg-10" id="main-content">
-                <div class="d-flex justify-content-between align-items-center py-2 mb-3 d-md-none">
-                    <button class="btn btn-outline-secondary" id="sidebar-toggle-mobile">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    <h5 class="mb-0">VentasPlus</h5>
-                    <div></div>
-                </div>
-                <div class="main-content p-4">
+    <div class="sidebar d-flex flex-column" id="sidebar">
+        <div class="p-3">
+            <h4 class="text-dark mb-0">
+                <i class="bi bi-graph-up-arrow"></i> <span id="sidebar-title">VentasPlus</span>
+            </h4>
+        </div>
+        <nav class="nav flex-column flex-grow-1">
+            <a class="nav-link" href="index.php?controller=Dashboard&action=index">
+                <i class="bi bi-house me-2"></i> <span class="nav-text">Dashboard</span>
+            </a>
+            <a class="nav-link" href="index.php?controller=Ventas&action=index">
+                <i class="bi bi-upload me-2"></i> <span class="nav-text">Cargar Ventas</span>
+            </a>
+            <a class="nav-link" href="index.php?controller=Devoluciones&action=index">
+                <i class="bi bi-arrow-return-left me-2"></i> <span class="nav-text">Cargar Devoluciones</span>
+            </a>
+            <a class="nav-link" href="index.php?controller=Vendedores&action=index">
+                <i class="bi bi-people me-2"></i> <span class="nav-text">Gestionar Vendedores</span>
+            </a>
+            <a class="nav-link" href="index.php?controller=Comisiones&action=index">
+                <i class="bi bi-calculator me-2"></i> <span class="nav-text">Comisiones</span>
+            </a>
+            <a class="nav-link" href="index.php?controller=Api&action=index">
+                <i class="bi bi-cloud-download me-2"></i> <span class="nav-text">API Externa</span>
+            </a>
+        </nav>
+        <div class="p-3 border-top">
+            <button class="btn btn-sm btn-outline-secondary w-100 d-none d-md-block" id="sidebar-toggle-desktop" title="Colapsar/Expandir menú">
+                <i class="bi bi-chevron-left"></i> <span class="nav-text">Colapsar</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary d-md-none" id="sidebar-toggle-mobile-close">
+                <i class="bi bi-x"></i> Cerrar
+            </button>
+        </div>
+    </div>
+    
+    <div class="main-content-wrapper" id="main-content-wrapper">
+        <div class="d-flex justify-content-between align-items-center py-2 mb-3 d-md-none">
+            <button class="btn btn-outline-secondary" id="sidebar-toggle-mobile">
+                <i class="bi bi-list"></i>
+            </button>
+            <h5 class="mb-0">VentasPlus</h5>
+            <div></div>
+        </div>
+        <div class="main-content p-4">
