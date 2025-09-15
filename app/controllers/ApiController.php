@@ -8,9 +8,7 @@ class ApiController {
         $this->apiService = new ApiService();
     }
     
-    /**
-     * Página principal de integración con API
-     */
+
     public function index() {
         $estadisticas = $this->apiService->obtenerEstadisticasSincronizacion();
         $categorias = $this->obtenerCategorias();
@@ -20,9 +18,7 @@ class ApiController {
         include "app/views/layout/footer.php";
     }
     
-    /**
-     * Sincronizar productos desde la API
-     */
+
     public function sincronizar() {
         try {
             $resultado = $this->apiService->sincronizarProductos();
@@ -45,9 +41,7 @@ class ApiController {
         exit;
     }
     
-    /**
-     * Validar datos entre CSV y API
-     */
+
     public function validar() {
         try {
             // Obtener productos del CSV más reciente
@@ -76,9 +70,7 @@ class ApiController {
         exit;
     }
     
-    /**
-     * Obtener productos con filtros
-     */
+
     public function productos() {
         $categorias = $this->obtenerCategorias();
         
@@ -87,9 +79,9 @@ class ApiController {
         include "app/views/layout/footer.php";
     }
     
-    /**
-     * API endpoint para obtener productos (JSON)
-     */
+
+    //  API endpoint para obtener productos (JSON)
+     
     public function apiProductos() {
         header('Content-Type: application/json');
         
@@ -115,9 +107,8 @@ class ApiController {
         }
     }
     
-    /**
-     * Obtener estadísticas de integración
-     */
+    //  Obtener estadísticas de integración
+     
     public function estadisticas() {
         header('Content-Type: application/json');
         
@@ -139,9 +130,8 @@ class ApiController {
         }
     }
     
-    /**
-     * Endpoint para DataTable de productos
-     */
+    //  Endpoint para DataTable de productos
+     
     public function datatable() {
         header('Content-Type: application/json');
         
@@ -182,9 +172,8 @@ class ApiController {
         }
     }
     
-    /**
-     * Obtener productos del CSV más reciente
-     */
+    //  Obtener productos del CSV más reciente
+     
     private function obtenerProductosCsv() {
         $pdo = Conexion::getConexion();
         
@@ -200,9 +189,8 @@ class ApiController {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    /**
-     * Obtener categorías disponibles
-     */
+    //  Obtener categorías disponibles
+     
     private function obtenerCategorias() {
         $pdo = Conexion::getConexion();
         
@@ -218,9 +206,8 @@ class ApiController {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    /**
-     * Obtener logs recientes
-     */
+    //  Obtener logs recientes
+     
     private function obtenerLogsRecientes($limit = 10) {
         $pdo = Conexion::getConexion();
         
@@ -240,9 +227,8 @@ class ApiController {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    /**
-     * Registrar log de actividad
-     */
+    //  Registrar log de actividad
+     
     private function registrarLog($tipo, $accion, $mensaje, $datos = null) {
         try {
             $pdo = Conexion::getConexion();

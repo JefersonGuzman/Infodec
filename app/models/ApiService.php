@@ -8,14 +8,13 @@ class ApiService {
     private $pdo;
     
     public function __construct() {
-        $this->apiUrl = 'https://jsonplaceholder.typicode.com/posts'; // API de productos de ejemplo
+        $this->apiUrl = 'https://jsonplaceholder.typicode.com/posts'; 
         $this->timeout = 30;
         $this->pdo = Conexion::getConexion();
     }
     
-    /**
-     * Obtiene productos desde la API externa
-     */
+    //  Obtiene productos desde la API externa
+     
     public function obtenerProductos($limit = 100) {
         try {
             $url = $this->apiUrl . '?_limit=' . $limit;
@@ -49,14 +48,13 @@ class ApiService {
                 throw new Exception("Error JSON: " . json_last_error_msg());
             }
             
-            // Transformar datos de la API al formato de productos
             $productos = [];
             foreach ($data as $item) {
                 $productos[] = [
                     'id' => $item['id'],
                     'titulo' => $item['title'],
                     'descripcion' => $item['body'],
-                    'precio_base' => rand(10000, 500000), // Precio aleatorio para simulación
+                    'precio_base' => rand(10000, 500000), 
                     'categoria' => $this->categorizarProducto($item['title']),
                     'disponible' => true,
                     'fecha_sincronizacion' => date('Y-m-d H:i:s')
@@ -71,9 +69,6 @@ class ApiService {
         }
     }
     
-    /**
-     * Categoriza productos basado en palabras clave del título
-     */
     private function categorizarProducto($titulo) {
         $titulo = strtolower($titulo);
         
@@ -92,9 +87,7 @@ class ApiService {
         }
     }
     
-    /**
-     * Sincroniza productos de la API con la base de datos
-     */
+
     public function sincronizarProductos() {
         try {
             $productos = $this->obtenerProductos();
@@ -183,9 +176,6 @@ class ApiService {
         }
     }
     
-    /**
-     * Obtiene estadísticas de sincronización
-     */
     public function obtenerEstadisticasSincronizacion() {
         try {
             $sql = "SELECT 
@@ -206,9 +196,6 @@ class ApiService {
         }
     }
     
-    /**
-     * Valida datos entre CSV y API
-     */
     public function validarDatos($productosCsv) {
         try {
             $sql = "SELECT id_api, titulo, precio_base, categoria 
@@ -262,9 +249,7 @@ class ApiService {
         }
     }
     
-    /**
-     * Obtiene productos de la API con filtros
-     */
+
     public function obtenerProductosFiltrados($categoria = null, $precioMin = null, $precioMax = null, $limit = 50) {
         try {
             $where = ["disponible = 1"];
@@ -309,9 +294,6 @@ class ApiService {
         }
     }
     
-    /**
-     * Obtiene productos para DataTable con paginación y filtros
-     */
     public function obtenerProductosDataTable($start, $length, $search, $orderColumn, $orderDir, $categoria = '', $precioMin = '', $precioMax = '', $disponible = '') {
         try {
             // Columnas para ordenamiento
