@@ -42,3 +42,38 @@ CREATE TABLE comisiones (
     comision_final DECIMAL(15,2) DEFAULT 0,
     FOREIGN KEY (vendedor_id) REFERENCES vendedores(id)
 );
+
+-- Tabla para almacenar productos sincronizados desde API externa
+CREATE TABLE IF NOT EXISTS productos_api (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_api INT NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    precio_base DECIMAL(15,2) NOT NULL DEFAULT 0,
+    categoria VARCHAR(100) NOT NULL DEFAULT 'General',
+    disponible BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_sincronizacion DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    UNIQUE KEY unique_id_api (id_api),
+    INDEX idx_categoria (categoria),
+    INDEX idx_precio (precio_base),
+    INDEX idx_disponible (disponible),
+    INDEX idx_fecha_sincronizacion (fecha_sincronizacion)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla para logs de sincronización
+-- 'api', 'csv', 'validacion'
+-- 'sincronizar', 'validar', 'error'
+CREATE TABLE IF NOT EXISTS logs_sincronizacion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(50) NOT NULL,
+    accion VARCHAR(100) NOT NULL,
+    mensaje TEXT,
+    datos_json JSON,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_tipo (tipo),
+    INDEX idx_fecha (fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

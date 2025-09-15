@@ -104,7 +104,7 @@ class VendedoresController {
             
             $pdo = Conexion::getConexion();
             
- otro vendedor con ese nombre
+            // Verificar si existe otro vendedor con ese nombre
             $stmt = $pdo->prepare("SELECT id FROM vendedores WHERE nombre = ? AND id != ?");
             $stmt->execute([$nombre, $id]);
             

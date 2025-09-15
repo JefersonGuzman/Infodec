@@ -5,8 +5,33 @@
 </div>
 
 <?php if (isset($_GET['msg'])): ?>
-    <div class="alert alert-<?php echo $_GET['msg'] == 'ok' ? 'success' : 'danger'; ?> alert-dismissible fade show" role="alert">
-        <?php echo $_GET['msg'] == 'ok' ? 'Archivo CSV cargado exitosamente' : 'Error al cargar el archivo'; ?>
+    <?php
+    $alertClass = 'danger';
+    $message = 'Error al cargar el archivo';
+    
+    switch($_GET['msg']) {
+        case 'ok':
+            $alertClass = 'success';
+            $message = 'Archivo CSV cargado exitosamente';
+            if (isset($_GET['procesados'])) {
+                $message .= ' - Procesados: ' . $_GET['procesados'] . ', Nuevos: ' . $_GET['nuevos'];
+            }
+            break;
+        case 'commissions_generated':
+            $alertClass = 'success';
+            $message = 'Comisiones generadas exitosamente para ' . $_GET['anio'] . '/' . $_GET['mes'] . ' - ' . $_GET['count'] . ' registros';
+            break;
+        case 'no_data':
+            $alertClass = 'warning';
+            $message = 'No hay datos para generar comisiones en ' . $_GET['anio'] . '/' . $_GET['mes'];
+            break;
+        case 'error':
+            $message = 'Error: ' . ($_GET['error'] ?? 'Error desconocido');
+            break;
+    }
+    ?>
+    <div class="alert alert-<?php echo $alertClass; ?> alert-dismissible fade show" role="alert">
+        <?php echo $message; ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
@@ -31,6 +56,57 @@
                         <i class="bi bi-upload me-2"></i>Subir y Cargar
                     </button>
                 </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0 text-dark">
+            <i class="bi bi-calculator me-2"></i>Generar Comisiones
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post" action="index.php?controller=Carga&action=generarComisiones">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="anio" class="form-label">Año</label>
+                    <select class="form-select" id="anio" name="anio" required>
+                        <?php
+                        $currentYear = date('Y');
+                        for ($i = $currentYear - 2; $i <= $currentYear + 1; $i++) {
+                            $selected = ($i == $currentYear) ? 'selected' : '';
+                            echo "<option value='$i' $selected>$i</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="mes" class="form-label">Mes</label>
+                    <select class="form-select" id="mes" name="mes" required>
+                        <?php
+                        $meses = [
+                            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                        ];
+                        $currentMonth = date('n');
+                        foreach ($meses as $num => $nombre) {
+                            $selected = ($num == $currentMonth) ? 'selected' : '';
+                            echo "<option value='$num' $selected>$nombre</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-calculator me-2"></i>Generar Comisiones
+                    </button>
+                </div>
+            </div>
+            <div class="form-text text-muted">
+                Genera las comisiones para un mes específico basándose en los datos de ventas y devoluciones.
             </div>
         </form>
     </div>

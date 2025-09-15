@@ -10,6 +10,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .sidebar {
             min-height: 100vh;
@@ -238,6 +239,9 @@
                         </a>
                         <a class="nav-link" href="index.php?controller=Comisiones&action=index">
                             <i class="bi bi-calculator me-2"></i> <span class="nav-text">Comisiones</span>
+                        </a>
+                        <a class="nav-link" href="index.php?controller=Api&action=index">
+                            <i class="bi bi-cloud-download me-2"></i> <span class="nav-text">API Externa</span>
                         </a>
                     </nav>
                     <div class="p-3 border-top">

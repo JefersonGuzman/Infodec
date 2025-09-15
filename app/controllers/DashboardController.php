@@ -13,6 +13,9 @@ class DashboardController {
         $fechaHasta = $_GET['fecha_hasta'] ?? '';
         $vendedorId = $_GET['vendedor'] ?? '';
         
+        // Generar comisiones automáticamente si no existen
+        $this->verificarYGenerarComisiones();
+        
         $stats = $this->obtenerEstadisticas($fechaDesde, $fechaHasta, $vendedorId);
         $ventasPorMes = $this->obtenerVentasPorMes($fechaDesde, $fechaHasta, $vendedorId);
         $topVendedores = $this->obtenerTopVendedores($fechaDesde, $fechaHasta, $vendedorId);
@@ -35,6 +38,32 @@ class DashboardController {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    private function verificarYGenerarComisiones() {
+        // Verificar si existen comisiones
+        $countSql = "SELECT COUNT(*) FROM comisiones";
+        $countStmt = $this->pdo->prepare($countSql);
+        $countStmt->execute();
+        $comisionesExistentes = $countStmt->fetchColumn();
+        
+        // Si no hay comisiones, generar automáticamente
+        if ($comisionesExistentes == 0) {
+            require_once "app/models/Comision.php";
+            $comision = new Comision();
+            
+            // Obtener todos los meses únicos con datos de operaciones
+            $sql = "SELECT DISTINCT YEAR(fecha) as anio, MONTH(fecha) as mes 
+                    FROM operaciones 
+                    ORDER BY anio, mes";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
+            $meses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($meses as $mes) {
+                $comision->calcularComisionesMes($mes['anio'], $mes['mes']);
+            }
+        }
+    }
+    
     
     private function obtenerEstadisticas($fechaDesde = '', $fechaHasta = '', $vendedorId = '') {
         $where = [];
@@ -45,7 +74,7 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
         $where[] = "o.fecha >= ?";
@@ -87,7 +116,7 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
         $where[] = "fecha >= ?";
@@ -128,7 +157,7 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
         $where[] = "o.fecha >= ?";
@@ -173,7 +202,7 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
         $where[] = "fecha >= ?";
@@ -215,7 +244,7 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
         $where[] = "fecha >= ?";
@@ -256,14 +285,23 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
-        $where[] = "CONCAT(anio, '-', LPAD(mes, 2, '0'), '-01') >= ?";
-        $params[] = $fechaDesde;
+        $fechaDesdeYear = date('Y', strtotime($fechaDesde));
+        $fechaDesdeMonth = date('n', strtotime($fechaDesde));
+        $fechaHastaYear = date('Y', strtotime($fechaHasta));
+        $fechaHastaMonth = date('n', strtotime($fechaHasta));
         
-        $where[] = "CONCAT(anio, '-', LPAD(mes, 2, '0'), '-01') <= ?";
-        $params[] = $fechaHasta;
+        $where[] = "(anio > ? OR (anio = ? AND mes >= ?))";
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeMonth;
+        
+        $where[] = "(anio < ? OR (anio = ? AND mes <= ?))";
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaMonth;
         
         if ($vendedorId) {
             $where[] = "vendedor_id = ?";
@@ -384,18 +422,23 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
-        $where[] = "c.anio >= ? OR (c.anio = ? AND c.mes >= ?)";
-        $params[] = date('Y', strtotime($fechaDesde));
-        $params[] = date('Y', strtotime($fechaDesde));
-        $params[] = date('n', strtotime($fechaDesde));
+        $fechaDesdeYear = date('Y', strtotime($fechaDesde));
+        $fechaDesdeMonth = date('n', strtotime($fechaDesde));
+        $fechaHastaYear = date('Y', strtotime($fechaHasta));
+        $fechaHastaMonth = date('n', strtotime($fechaHasta));
         
-        $where[] = "c.anio <= ? OR (c.anio = ? AND c.mes <= ?)";
-        $params[] = date('Y', strtotime($fechaHasta));
-        $params[] = date('Y', strtotime($fechaHasta));
-        $params[] = date('n', strtotime($fechaHasta));
+        $where[] = "(c.anio > ? OR (c.anio = ? AND c.mes >= ?))";
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeMonth;
+        
+        $where[] = "(c.anio < ? OR (c.anio = ? AND c.mes <= ?))";
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaMonth;
         
         if ($vendedorId) {
             $where[] = "c.vendedor_id = ?";
@@ -432,18 +475,23 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
-        $where[] = "c.anio >= ? OR (c.anio = ? AND c.mes >= ?)";
-        $params[] = date('Y', strtotime($fechaDesde));
-        $params[] = date('Y', strtotime($fechaDesde));
-        $params[] = date('n', strtotime($fechaDesde));
+        $fechaDesdeYear = date('Y', strtotime($fechaDesde));
+        $fechaDesdeMonth = date('n', strtotime($fechaDesde));
+        $fechaHastaYear = date('Y', strtotime($fechaHasta));
+        $fechaHastaMonth = date('n', strtotime($fechaHasta));
         
-        $where[] = "c.anio <= ? OR (c.anio = ? AND c.mes <= ?)";
-        $params[] = date('Y', strtotime($fechaHasta));
-        $params[] = date('Y', strtotime($fechaHasta));
-        $params[] = date('n', strtotime($fechaHasta));
+        $where[] = "(c.anio > ? OR (c.anio = ? AND c.mes >= ?))";
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeMonth;
+        
+        $where[] = "(c.anio < ? OR (c.anio = ? AND c.mes <= ?))";
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaMonth;
         
         if ($vendedorId) {
             $where[] = "c.vendedor_id = ?";
@@ -479,18 +527,23 @@ class DashboardController {
         }
         
         if (!$fechaDesde) {
-            $fechaDesde = '2023-01-01';
+            $fechaDesde = '2025-01-01';
         }
         
-        $where[] = "c.anio >= ? OR (c.anio = ? AND c.mes >= ?)";
-        $params[] = date('Y', strtotime($fechaDesde));
-        $params[] = date('Y', strtotime($fechaDesde));
-        $params[] = date('n', strtotime($fechaDesde));
+        $fechaDesdeYear = date('Y', strtotime($fechaDesde));
+        $fechaDesdeMonth = date('n', strtotime($fechaDesde));
+        $fechaHastaYear = date('Y', strtotime($fechaHasta));
+        $fechaHastaMonth = date('n', strtotime($fechaHasta));
         
-        $where[] = "c.anio <= ? OR (c.anio = ? AND c.mes <= ?)";
-        $params[] = date('Y', strtotime($fechaHasta));
-        $params[] = date('Y', strtotime($fechaHasta));
-        $params[] = date('n', strtotime($fechaHasta));
+        $where[] = "(c.anio > ? OR (c.anio = ? AND c.mes >= ?))";
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeYear;
+        $params[] = $fechaDesdeMonth;
+        
+        $where[] = "(c.anio < ? OR (c.anio = ? AND c.mes <= ?))";
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaYear;
+        $params[] = $fechaHastaMonth;
         
         if ($vendedorId) {
             $where[] = "c.vendedor_id = ?";
@@ -501,10 +554,10 @@ class DashboardController {
         
         $sql = "
             SELECT 
-                COUNT(*) as total_vendedores,
-                SUM(CASE WHEN c.bono > 0 THEN 1 ELSE 0 END) as vendedores_con_bono,
+                COUNT(DISTINCT c.vendedor_id) as total_vendedores,
+                COUNT(DISTINCT CASE WHEN c.bono > 0 THEN c.vendedor_id END) as vendedores_con_bono,
                 ROUND(
-                    (SUM(CASE WHEN c.bono > 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)), 2
+                    (COUNT(DISTINCT CASE WHEN c.bono > 0 THEN c.vendedor_id END) * 100.0 / COUNT(DISTINCT c.vendedor_id)), 2
                 ) as porcentaje_bonos
             FROM comisiones c
             $whereClause

@@ -313,13 +313,25 @@
                                     <td><?php echo number_format($vendedor['devoluciones']); ?></td>
                                     <td>$<?php echo number_format($vendedor['valor_devoluciones'], 0, ',', '.'); ?></td>
                                     <td>
-                                        <?php if($totalBono > 0): ?>
-                                            <span class="text-success">
-                                                <i class="bi bi-plus-circle"></i> $<?php echo number_format($totalBono, 0, ',', '.'); ?>
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="text-muted">-</span>
-                                        <?php endif; ?>
+                                        <div class="bono-container">
+                                            <?php if($totalBono > 0): ?>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge bg-success me-2 bono-badge">
+                                                        <i class="bi bi-trophy-fill me-1"></i>BONO
+                                                    </span>
+                                                    <span class="fw-bold text-success bono-amount">
+                                                        $<?php echo number_format($totalBono, 0, ',', '.'); ?>
+                                                    </span>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge bg-secondary me-2 bono-badge">
+                                                        <i class="bi bi-dash-circle me-1"></i>SIN BONO
+                                                    </span>
+                                                    <span class="text-muted bono-amount">$0</span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                     <td>$<?php echo number_format(($vendedor['valor_ventas'] - $vendedor['valor_devoluciones']) * 0.05, 0, ',', '.'); ?></td>
                                 </tr>
@@ -724,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (!fechaDesde.value) {
-        fechaDesde.value = '2023-01-01';
+        fechaDesde.value = '2025-01-01';
     }
 });
 </script>
@@ -849,6 +861,37 @@ document.addEventListener('DOMContentLoaded', function() {
     .chart-bar,
     .chart-line {
         height: 12rem;
+    }
+}
+
+/* Estilos para la columna de bono */
+.bono-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.bono-amount {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.bono-container {
+    min-width: 120px;
+}
+
+/* Responsive para la tabla */
+@media (max-width: 992px) {
+    .bono-container {
+        min-width: 100px;
+    }
+    
+    .bono-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .bono-amount {
+        font-size: 0.8rem;
     }
 }
 </style>

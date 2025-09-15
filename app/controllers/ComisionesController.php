@@ -313,8 +313,20 @@ class ComisionesController {
                 '<span class="badge bg-success">' . number_format($comision['indice_devoluciones'], 2, ',', '.') . '%</span>';
             
             $bono = $comision['bono'] > 0 ? 
-                '<span class="text-success"><i class="bi bi-plus-circle"></i> $' . number_format($comision['bono'], 0, ',', '.') . '</span>' :
-                '<span class="text-muted">-</span>';
+                '<div class="bono-container text-end">
+                    <span class="badge bg-success bono-badge mb-1 d-block">
+                        <i class="bi bi-trophy-fill me-1"></i>BONO
+                    </span>
+                    <div class="bono-amount text-success">
+                        $' . number_format($comision['bono'], 0, ',', '.') . '
+                    </div>
+                </div>' :
+                '<div class="bono-container text-end">
+                    <span class="badge bg-light text-dark bono-badge mb-1 d-block">
+                        <i class="bi bi-dash-circle me-1"></i>SIN BONO
+                    </span>
+                    <div class="text-muted small">$0</div>
+                </div>';
             
             $penalizacion = $comision['penalizacion'] > 0 ? 
                 '<span class="text-danger"><i class="bi bi-dash-circle"></i> $' . number_format($comision['penalizacion'], 0, ',', '.') . '</span>' :

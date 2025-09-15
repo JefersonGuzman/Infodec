@@ -72,12 +72,39 @@ class DevolucionesController {
     }
     
     public function upload() {
-        if (isset($_FILES['csvfile'])) {
+        if (isset($_FILES['csvfile']) && $_FILES['csvfile']['error'] === UPLOAD_ERR_OK) {
             $file = $_FILES['csvfile']['tmp_name'];
-            $this->operacion->cargarCSV($file);
-            header("Location: index.php?controller=Devoluciones&action=index&msg=success");
+            $resultado = $this->operacion->cargarCSV($file, 'Devolución');
+            
+            if ($resultado['success']) {
+                $mensaje = "Archivo cargado exitosamente. ";
+                $mensaje .= "Procesados: {$resultado['procesados']}, ";
+                $mensaje .= "Nuevos: {$resultado['nuevos']}, ";
+                $mensaje .= "Duplicados omitidos: {$resultado['duplicados']}";
+                
+                header("Location: index.php?controller=Devoluciones&action=index&msg=success&details=" . urlencode($mensaje));
+            } else {
+                header("Location: index.php?controller=Devoluciones&action=index&msg=error&error=" . urlencode($resultado['error']));
+            }
         } else {
-            header("Location: index.php?controller=Devoluciones&action=index&msg=error");
+            $error = "No se pudo cargar el archivo. ";
+            if (isset($_FILES['csvfile']['error'])) {
+                switch ($_FILES['csvfile']['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+                    case UPLOAD_ERR_FORM_SIZE:
+                        $error .= "El archivo es demasiado grande.";
+                        break;
+                    case UPLOAD_ERR_PARTIAL:
+                        $error .= "El archivo se subió parcialmente.";
+                        break;
+                    case UPLOAD_ERR_NO_FILE:
+                        $error .= "No se seleccionó ningún archivo.";
+                        break;
+                    default:
+                        $error .= "Error desconocido al subir el archivo.";
+                }
+            }
+            header("Location: index.php?controller=Devoluciones&action=index&msg=error&error=" . urlencode($error));
         }
     }
     

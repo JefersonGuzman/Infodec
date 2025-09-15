@@ -298,43 +298,6 @@ $(document).ready(function() {
     });
 });
 
-<style>
-#comisionesTable {
-    table-layout: fixed;
-    width: 100%;
-}
-
-#comisionesTable th {
-    text-align: center;
-    vertical-align: middle;
-    white-space: nowrap;
-    font-weight: 600;
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-}
-
-#comisionesTable td {
-    vertical-align: middle;
-    padding: 8px 12px;
-}
-
-#comisionesTable .text-center {
-    text-align: center !important;
-}
-
-#comisionesTable .text-end {
-    text-align: right !important;
-}
-
-#comisionesTable tbody tr:hover {
-    background-color: #f8f9fa;
-}
-
-.table-container {
-    overflow-x: auto;
-}
-</style>
-
 function verDetalleComision(vendedorId, anio, mes) {
     $('#detalleContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>');
     
@@ -405,3 +368,75 @@ function verDetalleComision(vendedorId, anio, mes) {
         });
 }
 </script>
+
+<style>
+#comisionesTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#comisionesTable th {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#comisionesTable td {
+    vertical-align: middle;
+    padding: 8px 12px;
+}
+
+#comisionesTable .text-center {
+    text-align: center !important;
+}
+
+#comisionesTable .text-end {
+    text-align: right !important;
+}
+
+#comisionesTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+/* Estilos mejorados para la columna de bono */
+.bono-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.bono-amount {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.bono-container {
+    min-width: 80px;
+    max-width: 120px;
+}
+
+/* Responsive para la columna de bono */
+@media (max-width: 992px) {
+    .bono-container {
+        min-width: 70px;
+        max-width: 100px;
+    }
+    
+    .bono-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .bono-amount {
+        font-size: 0.8rem;
+    }
+}
+</style>
